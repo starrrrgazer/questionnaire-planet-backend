@@ -1,8 +1,9 @@
 import json
 
 from django.http import JsonResponse, HttpResponse
-from utils import zhenzismsclient
+# from utils import zhenzismsclient
 import random
+from utils import zhenzismsclient
 
 # Create your views here.
 from user.models import user
