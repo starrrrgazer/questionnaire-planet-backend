@@ -28,7 +28,9 @@ class QuestionnaireInformation(models.Model):
     # 题目数量
     questionAmount = models.IntegerField(default=0),
     # 回收问卷数量
-    recoveryAmount = models.IntegerField(default=0)
+    recoveryAmount = models.IntegerField(default=0),
+#     是否已删除
+    deleted = models.BooleanField(default=False)
 #     题目是否乱序
 
 # 问卷中的题目
