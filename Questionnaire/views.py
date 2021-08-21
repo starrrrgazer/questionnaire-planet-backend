@@ -274,3 +274,37 @@ def stopReleaseQuestionnaire(request):
             return JsonResponse({'status': 200, 'result': "发布成功"})
     else:
         return JsonResponse({'status': 401, 'result': "请求方式错误"})
+
+# 查看我的问卷
+def getMyQuestionnaire(request):
+    if request.method == 'POST':
+        req = json.loads(request.body.decode())
+        res = []
+        try:
+            authorId = req.authorId
+            questionnaires = QuestionnaireInformation.objects.filter(authorId=authorId)
+            if questionnaires.exists():
+                questionnaireList = []
+                for questionnaire in questionnaires:
+                    questionnaireList.append(
+                        {
+                            'questionnaireId': questionnaire.id,
+                            'questionnaireTitle': questionnaire.questionnaireTitle,
+                            'currenState': questionnaire.currentState,
+                            'deleted': questionnaire.deleted,
+                            'answerAmount': questionnaire.recoveryAmount,
+                            'setUpTime': questionnaire.setUpTime,
+                            'startTime': questionnaire.startTime,
+                            'latestAlterTime': questionnaire.latestAlterTime
+                        }
+                    )
+                res['questionnaireList'] = questionnaireList
+                res['status'] = 200
+                res['result'] = "获取成功"
+                return JsonResponse(res)
+            else:
+                return JsonResponse({'status': 200, 'result': "用户没有创建问卷记录"})
+        except Exception:
+            return JsonResponse({'status': 400, 'result': "获取信息出错"})
+    else:
+        return JsonResponse({'status': 401, 'result': "请求方式错误"})
