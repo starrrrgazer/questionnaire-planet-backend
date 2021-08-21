@@ -6,5 +6,5 @@ urlpatterns = [
     path("deleteQuestionnaire",views.deleteQuestionnaire),
     path("backQuestionnaire",views.backQuestionnaire),
     path("getAnswer",views.getAnswer),
-    path("getquestionAnswer",views.getquestionAnswer)
+    path("getQuestionAnswer",views.getQuestionAnswer)
 ]

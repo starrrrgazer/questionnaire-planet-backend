@@ -18,21 +18,27 @@ def getAnswerData(request):
         i = 1;
         # 遍历题目
         for question in questions:
-            k = 0
-            myQuestion = [];
-            myQuestion.append(str(i));i+=1;#第几题
-            myQuestion.append(str(question.id))#题目id
-            myQuestion.append(0);myQuestion.append(0);myQuestion.append(0);myQuestion.append(0);
+            # 查询选项内容
+            # options = Options.objects.filter(questionId = question)
+            myQuestion = []
+            # myQuestion.append({})
+            myQuestion.append({'num': i,'id': question.id,'answernum': 0,"question": question.questionTitle,'name':'A','Num': 0})
+            myQuestion.append({'name':'B','Num': 0})
+            myQuestion.append({'name':'C','Num': 0})
+            myQuestion.append({'name':'D','Num': 0})
+            i+=1
+            # myQuestionAnswers = {'num': i, 'id': question.id, 'answernum': 0,"question":question.questionTitle
+            #     , 'A': 0, 'B': 0, 'C': 0, 'D': 0};i+=1
             for answerQuestionnaire in answerQuestionnaires:
                 answerQuestionId = AnswerQuestions.objects.get(answerQuestionId = question.id,answerQuestionnaireId = answerQuestionnaire.id).id
                 optionContent = AnswerOptions.objects.get(answerQuestionId = answerQuestionId).optionContent
-                if '1' in optionContent: myQuestion[2] += 1
-                if '2' in optionContent: myQuestion[3] += 1
-                if '3' in optionContent: myQuestion[4] += 1
-                if '4' in optionContent: myQuestion[5] += 1
-                k+=1
 
-            params.append(str(k));#每道题填写人数
+                if '1' in optionContent: myQuestion[0]['Num'] += 1
+                if '2' in optionContent: myQuestion[1]['Num'] += 1
+                if '3' in optionContent: myQuestion[2]['Num'] += 1
+                if '4' in optionContent: myQuestion[3]['Num'] += 1
+                myQuestion[0]['answernum']+=1
+            # params.append({'answernum':k});#每道题填写人数
             params.append(myQuestion)
 
         return JsonResponse({
@@ -57,34 +63,28 @@ def getAnswer(request):
         # 遍历每个答卷
         for answerQuestionnaire in answerQuestionnaires:
             answers = [];
-            answers.append("答题者id:")
-            answers.append(str(answerQuestionnaire.answerId));
+            answers.append({"answerId":answerQuestionnaire.answerId})
             answerQuestions = AnswerQuestions.objects.filter(answerQuestionnaireId = answerQuestionnaire.id)
             # 答卷中的每道题
             for answerQuestion in answerQuestions:
                 i = 1;
                 myOption = AnswerOptions.objects.get(answerQuestionId = answerQuestion.id)
                 if myOption.optionType == 1:
-                    answers.append("题号：")
-                    answers.append(str(i))
-                    answers.append("答案：")
-                    answers.append(myOption.optionContent)
-                    answers.append("id")
-                    answers.append(str(answerQuestion.id));i+=1
+                    answers.append({"num":i,"answer": myOption.optionContent,"id":answerQuestion.id});i+=1
+                    # answers.append({"answer": myOption.optionContent})
+                    # answers.append({"id":answerQuestion.id});i+=1
                 if myOption.optionType == 2:
-                    answers.append("题号：")
-                    answers.append(str(i))
-                    answers.append("答案：")
-                    answers.append(myOption.completionContent)
-                    answers.append("id")
-                    answers.append(str(answerQuestion.id));i+=1
+                    answers.append({"num": i, "answer": myOption.completionContent, "id": answerQuestion.id});
+                    i += 1
+                    # answers.append({"num":i})
+                    # answers.append({"answer": myOption.completionContent})
+                    # answers.append({"id":answerQuestion.id});i+=1
                 if myOption.optionType == 3:
-                    answers.append("题号：")
-                    answers.append(str(i))
-                    answers.append("答案：")
-                    answers.append(myOption.optionScore)
-                    answers.append("id")
-                    answers.append(str(answerQuestion.id));i+=1
+                    answers.append({"num": i, "answer": myOption.optionScore, "id": answerQuestion.id});
+                    i += 1
+                    # answers.append({"num":i})
+                    # answers.append({"answer": myOption.optionScore})
+                    # answers.append({"id":answerQuestion.id});i+=1
 
             params.append(answers)
 
@@ -101,7 +101,7 @@ def getAnswer(request):
 
 
 # 筛选功能
-def getquestionAnswer(request):
+def getQuestionAnswer(request):
     if request.method == 'POST':
         params = json.loads(request.body);
         questionnaireId = params.get("questionnaireId")
@@ -114,18 +114,14 @@ def getquestionAnswer(request):
         # 遍历每个答卷
         for answerQuestionnaire in answerQuestionnaires:
             answers = [];
-            answers.append("答题者id:" )
-            answers.append(str(answerQuestionnaire.answerId));
+            answers.append({"answerId":answerQuestionnaire.answerId})
             myOption = AnswerOptions.objects.get(answerQuestionId=question.id)
             if myOption.optionType == 1:
-                answers.append("答案:" )
-                answers.append( myOption.optionContent)
+                answers.append({"answer":myOption.optionContent} )
             if myOption.optionType == 2:
-                answers.append("答案:" )
-                answers.append( myOption.completionContent)
+                answers.append({"answer":myOption.completionContent})
             if myOption.optionType == 3:
-                answers.append("答案:")
-                answers.append(myOption.optionScore)
+                answers.append({"answer":myOption.optionScore})
             data.append(answers)
         return JsonResponse({
             "status": 200,
