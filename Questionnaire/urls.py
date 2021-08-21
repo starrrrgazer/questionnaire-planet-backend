@@ -9,4 +9,5 @@ urlpatterns = [
     path("getquestionAnswer",views.getquestionAnswer),
     path("saveQuestionnaire", views.saveQuestionnaire),
     path("releaseQuestionnaire", views.releaseQuestionnaire),
+    path("stopReleaseQuestionnaire", views.stopReleaseQuestionnaire),
 ]

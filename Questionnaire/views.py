@@ -257,3 +257,20 @@ def releaseQuestionnaire(request):
 
     else:
         return JsonResponse({'status': 401, 'result': "请求方式错误"})
+
+# 问卷停止发放
+def stopReleaseQuestionnaire(request):
+    if request.method == 'POST':
+        req = json.loads(request.body.decode())
+        questionnaireId = req.questionnaireId
+        try:
+            questionnaire = QuestionnaireInformation.objects.get(questionnaireId=questionnaireId)
+        except Exception:
+            return JsonResponse({'status': 400, 'result': "没有找到问卷"})
+        else:
+            questionnaire.currentState = False
+            questionnaire.endTime = timezone.localtime().strftime("%Y-%m-%d %H:%M:%S")
+            questionnaire.save()
+            return JsonResponse({'status': 200, 'result': "发布成功"})
+    else:
+        return JsonResponse({'status': 401, 'result': "请求方式错误"})
