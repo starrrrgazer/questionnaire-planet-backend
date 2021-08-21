@@ -1,4 +1,7 @@
 import json
+
+from django.utils import timezone
+
 from Questionnaire.models import *
 from django.http import JsonResponse, HttpResponse
 
@@ -229,5 +232,28 @@ def saveQuestionnaire(request):
             return JsonResponse({'status': 200, 'result':"保存成功"})
         except Exception:
             return JsonResponse({'status': 400, 'result':"保存问卷失败"})
+    else:
+        return JsonResponse({'status': 401, 'result': "请求方式错误"})
+
+# 问卷发放
+def releaseQuestionnaire(request):
+    if request.method == 'POST':
+        req = json.loads(request.body.decode())
+        questionnaireId = req.questionnaireId
+        try:
+            questionnaire = QuestionnaireInformation.objects.get(questionnaireId=questionnaireId)
+        except Exception:
+            return JsonResponse({'status': 400, 'result': "没有找到问卷"})
+        else:
+            if questionnaire.answerAmount >= questionnaire.maxRecovery:
+                questionnaire.currentState = False
+                questionnaire.save()
+                return JsonResponse({'status': 400, 'result': "已经达到回收数量上限"})
+            else:
+                questionnaire.currentState = True
+                questionnaire.startTime = timezone.localtime().strftime("%Y-%m-%d %H:%M:%S")
+                questionnaire.save()
+                return JsonResponse({'status': 200, 'result': "发布成功"})
+
     else:
         return JsonResponse({'status': 401, 'result': "请求方式错误"})
