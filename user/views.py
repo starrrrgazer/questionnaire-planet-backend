@@ -95,5 +95,4 @@ def getMyInfo(request):
                 "email":myuser.email,
                 "username":myuser.username,
                 "phone":myuser.phone,
-                "sdID":myuser.sfID
             })
