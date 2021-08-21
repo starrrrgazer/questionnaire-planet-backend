@@ -7,7 +7,7 @@ from django.shortcuts import render
 # Create your views here.
 
 # 获取问卷结果的数据
-def getAnswer(request):
+def getAnswerData(request):
     if request.method == 'POST':
         questionnaireId = json.loads(request.body).get("id");
         params = [];
@@ -16,7 +16,7 @@ def getAnswer(request):
         answerQuestionnaires = AnswerQuestionnaire.objects.filter(questionnaireId = questionnaireId);
         # 所有该问卷中的题目
         questions = Questions.objects.filter(questionnaireId = questionnaireId)
-        i = 1
+        i = 0
         # 遍历题目
         for question in questions:
             myQuestion = [];
@@ -37,6 +37,36 @@ def getAnswer(request):
             "data":params,
             "result":"获取问卷结果成功"
         })
+
+
+# 获取答题情况
+def getAnswer(request):
+    if request.method == 'POST':
+        questionnaireId = json.loads(request.body).get("id");
+        params = [];
+        answerQuestionnaires = AnswerQuestionnaire.objects.filter(questionnaireId = questionnaireId)
+        # 遍历每个答卷
+        for answerQuestionnaire in answerQuestionnaires:
+            answers = [];
+            answers.append("答题者id:"+answerQuestionnaire.answerId);
+            answerQuestions = AnswerQuestions.objects.filter(answerQuestionnaireId = answerQuestionnaire.id)
+            # 答卷中的每道题
+            for answerQuestion in answerQuestions:
+                i = 0;
+                myOption = AnswerOptions.objects.get(answerQuestionId = answerQuestion.id)
+                if myOption.optionType == 1: answers.append("第"+ ++i +"题答案是"+myOption.optionContent)
+                if myOption.optionType == 2: answers.append("第" + ++i + "题答案是" + myOption.completionContent)
+                if myOption.optionType == 3: answers.append("第" + ++i + "题答案是" + myOption.optionScore)
+
+            params.append(answers)
+
+        return JsonResponse({
+            "status":200,
+            "data":params,
+            "result":"获取答题情况成功"
+        })
+
+
 
 
 
