@@ -1,9 +1,9 @@
 import json
 
 from django.http import JsonResponse, HttpResponse
-# from utils import zhenzismsclient
+
 import random
-from utils import zhenzismsclient
+# from utils import zhenzismsclient
 
 # Create your views here.
 from user.models import user
@@ -59,31 +59,31 @@ def register(request):
                 "result": "用户已存在",
             })
 
-def getCode(request):
-    if request.method == 'POST':
-        ggg = json.loads(request.body)
-        number = ggg.get("number");
-        code = ''
-        for num in range(1, 5):
-            code = code + str(random.randint(0, 9))
-        client = zhenzismsclient.ZhenziSmsClient('https://sms_developer.zhenzikj.com', "108980","ee6d9744-1128-4d50-abb8-b227b793f196" )
-        params = {};
-        params['number'] =number;
-        params['templateId'] = '5130';
-        params['templateParams'] = [code, '15分钟'];
-        result = client.send(params)
-        # return HttpResponse(json.dumps(result),content_type="application/json")
-        # return JsonResponse(result,safe=False,json_dumps_params={'ensure_ascii':False})
-        if(result[8]=='0'):
-            return JsonResponse({
-                "status":200,
-                "result":"发送成功"
-            })
-        else:
-            return JsonResponse({
-                "status": 400,
-                "result": "发送失败"
-            })
+# def getCode(request):
+#     if request.method == 'POST':
+#         ggg = json.loads(request.body)
+#         number = ggg.get("number");
+#         code = ''
+#         for num in range(1, 5):
+#             code = code + str(random.randint(0, 9))
+#         client = zhenzismsclient.ZhenziSmsClient('https://sms_developer.zhenzikj.com', "108980","ee6d9744-1128-4d50-abb8-b227b793f196" )
+#         params = {};
+#         params['number'] =number;
+#         params['templateId'] = '5130';
+#         params['templateParams'] = [code, '15分钟'];
+#         result = client.send(params)
+#         # return HttpResponse(json.dumps(result),content_type="application/json")
+#         # return JsonResponse(result,safe=False,json_dumps_params={'ensure_ascii':False})
+#         if(result[8]=='0'):
+#             return JsonResponse({
+#                 "status":200,
+#                 "result":"发送成功"
+#             })
+#         else:
+#             return JsonResponse({
+#                 "status": 400,
+#                 "result": "发送失败"
+#             })
 
 def getMyInfo(request):
     if request.method == 'GET':
