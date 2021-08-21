@@ -108,7 +108,7 @@ class AnswerQuestions(models.Model):
 # 回收题目的选项信息
 class AnswerOptions(models.Model):
     # 所属回收题目id
-    answerQuestionId = models.IntegerField(unique=True),
+    answerQuestionId = models.IntegerField,
     # 回收选项id
     answerOptionId = models.IntegerField(unique=True),
 #     所属回收题目中的顺序
