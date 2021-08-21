@@ -10,13 +10,10 @@ class Migration(migrations.Migration):
     ]
 
     operations = [
-        migrations.RemoveField(
-            model_name='questionnaireinformation',
-            name='recoveryAmount',
-        ),
         migrations.AddField(
             model_name='questionnaireinformation',
-            name='deleted',
-            field=models.BooleanField(default=False),
+            name='answerAmount',
+            field=models.IntegerField(default=0)
         ),
+
     ]
