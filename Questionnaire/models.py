@@ -13,15 +13,15 @@ class QuestionnaireInformation(models.Model):
     # 问卷介绍
     questionnaireInformation = models.CharField(max_length=255)
     # 创建时间
-    setUpTime = models.DateField(auto_now_add=True,null=True)
+    setUpTime = models.DateTimeField(auto_now_add=True,null=True)
     # 最近修改时间
-    latestAlterTime = models.DateField(auto_now=True,null=True)
+    latestAlterTime = models.DateTimeField(auto_now=True,null=True)
     # 问卷发布时间
-    startTime = models.DateField()
+    startTime = models.DateTimeField(null=True)
     # 问卷结束时间(设定的结束时间)
-    endTime = models.DateField()
+    endTime = models.DateTimeField(null=True)
     # 问卷截止时间（最终真正结束时间）
-    lastEndTime = models.DateField()
+    lastEndTime = models.DateTimeField(null=True)
     # 回收问卷上限
     maxRecovery = models.IntegerField(default=9999)
     # 当前问卷状态（是否可回收）
@@ -56,7 +56,7 @@ class Questions(models.Model):
 # 题目类型
 class QuestionType(models.Model):
     # 题目类型id
-    id = models.AutoField
+    id = models.IntegerField()
     # 1：选择题 2.填空题 3.简单评分 4.高级评分
     questionTypeId = models.IntegerField(primary_key=True, null=False)
     # 题目类型名
@@ -74,7 +74,7 @@ class Options(models.Model):
     # 选项文字描述
     optionContent = models.CharField(max_length=255)
     # 选项类型 1选择，2填空，3评分
-    optionType = models.IntegerField
+    optionType = models.IntegerField()
     # 选项评分 -1表示这个选项没有评分的功能，其他正数表示评分最大是多少
     optionScore = models.IntegerField(default=-1)
     # 评分是否有评价
@@ -88,7 +88,7 @@ class AnswerQuestionnaire(models.Model):
     # 填写者Id 匿名时为空
     answerId = models.IntegerField(null=True,unique=True)
     # 提交时间
-    commitTime = models.DateField(auto_now_add=True)
+    commitTime = models.DateTimeField(auto_now_add=True)
 
 
 # 回收问卷的题目信息
@@ -100,7 +100,7 @@ class AnswerQuestions(models.Model):
     # 所属回收问卷id
     answerQuestionnaireId = models.IntegerField(unique=False)
     # 所属回收问卷中的顺序
-    answerOrder = models.IntegerField
+    answerOrder = models.IntegerField(null=True)
     # 题目类型id
     questionTypeId = models.IntegerField(unique=False,default=1)
     # 填写的内容(填空题)
@@ -116,7 +116,7 @@ class AnswerOptions(models.Model):
 #     所属回收题目中的顺序
     answerOptionOrder = models.IntegerField()
 #     选项类型 1选择，2填空，3评分
-    optionType = models.IntegerField()
+    optionType = models.IntegerField(null=False)
 #     选择内容
     optionContent = models.CharField(max_length=255)
 #     填空内容
