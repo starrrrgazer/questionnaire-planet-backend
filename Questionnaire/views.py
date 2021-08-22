@@ -212,7 +212,7 @@ def saveQuestionnaire(request):
                     questionnaireInformation=information.questionnaireInformation,
                     maxRecovery=information.maxRecovery,
                     questionAmount=information.questionnaireAmount
-                );
+                )
                 questionnaire.save()
                 questionnaireId = questionnaire.id
                 problems = information.questionList

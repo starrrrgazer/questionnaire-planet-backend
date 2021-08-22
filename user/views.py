@@ -33,6 +33,7 @@ def login(request):
                 "status": 200,
                 "result": "登录成功",
             })
+
 def register(request):
     if request.method == 'POST':
         result = json.loads(request.body)
