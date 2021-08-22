@@ -399,52 +399,84 @@ def getQuestionnaireDetails(request):
 def editQuestionnaire(request):
     if request.method == 'POST':
         if request.session.get('id'):
-            # try:
-            information = json.loads(request.body.decode())
-            print(1)
-            oldQuestionnaireId = information.get('questionnaireId')
-            print(oldQuestionnaireId)
-            oldQuestions = Questions.objects.filter(questionnaireId=oldQuestionnaireId)
-            for oldQuestion in oldQuestions:
-                oldQuestion.questionnaireId = -1
-                oldQuestion.save()
-            questionnaire = QuestionnaireInformation.objects.get(id=oldQuestionnaireId)
-            questionnaire.questionnaireTitle=information.get('questionnaireTitle')
-            questionnaire.questionnaireInformation=information.get('questionnaireInformation')
-            questionnaire.maxRecovery=information.get('maxRecovery')
-            questionnaire.questionAmount=information.get('questionAmount')
-            questionnaire.save()
-            questionnaireId = oldQuestionnaireId
-            problems = information.get('questionList')
-            for problem in problems:
-                question = Questions(
-                    questionnaireId=questionnaireId,
-                    questionTitle=problem.get('questionTitle'),
-                    required=problem.get('questionRequired'),
-                    questionTypeId=problem.get('questionTypeId'),
-                    multipleChoice=problem.get('multipleChoice'),
-                    choiceAmount=problem.get('choiceAmount'),
-                    questionOrder=problem.get('questionOrder')
-                )
-                question.save()
-                questionId = question.id
-                # 判断是否有optionList
-                if question.choiceAmount > 0:
-                    options = problem.get('optionList')
+            try:
+                information = json.loads(request.body.decode())
+                print(1)
+                oldQuestionnaireId = information.get('questionnaireId')
+                print(oldQuestionnaireId)
+                oldQuestions = Questions.objects.filter(questionnaireId=oldQuestionnaireId)
+                for oldQuestion in oldQuestions:
+                    oldQuestion.questionnaireId = -1
+                    oldQuestion.save()
+                questionnaire = QuestionnaireInformation.objects.get(id=oldQuestionnaireId)
+                questionnaire.questionnaireTitle=information.get('questionnaireTitle')
+                questionnaire.questionnaireInformation=information.get('questionnaireInformation')
+                questionnaire.maxRecovery=information.get('maxRecovery')
+                questionnaire.questionAmount=information.get('questionAmount')
+                questionnaire.save()
+                questionnaireId = oldQuestionnaireId
+                problems = information.get('questionList')
+                for problem in problems:
+                    question = Questions(
+                        questionnaireId=questionnaireId,
+                        questionTitle=problem.get('questionTitle'),
+                        required=problem.get('questionRequired'),
+                        questionTypeId=problem.get('questionTypeId'),
+                        multipleChoice=problem.get('multipleChoice'),
+                        choiceAmount=problem.get('choiceAmount'),
+                        questionOrder=problem.get('questionOrder')
+                    )
+                    question.save()
+                    questionId = question.id
+                    # 判断是否有optionList
+                    if question.choiceAmount > 0:
+                        options = problem.get('optionList')
+                        for option in options:
+                            op = Options(
+                                questionId=questionId,
+                                optionOrder=option.get('optionOrder'),
+                                required=option.get('optionRequired'),
+                                optionContent=option.get('optionContent'),
+                                optionType=option.get('optionType'),
+                                optionScore=option.get('optionScore'),
+                                optionText=option.get('optionText')
+                            )
+                            op.save()
+                return JsonResponse({'status': 200, 'result': "保存成功"})
+            except Exception:
+                return JsonResponse({'status': 400, 'result': "保存问卷失败"})
+        else:
+            return JsonResponse({'status': 400, 'result': "用户未登录"})
+    else:
+        return JsonResponse({'status': 401, 'result': "请求方式错误"})
+
+# 问卷修改（发布后）
+def modifyQuestionnaire(request):
+    if request.method == 'POST':
+        if request.session.get('id'):
+            try:
+                information = json.loads(request.body.decode())
+                questionnaireId = information.get('questionnaireId')
+                questionnaire = QuestionnaireInformation.objects.get(id=questionnaireId)
+                questionnaire.questionnaireTitle=information.get('questionnaireTitle')
+                questionnaire.questionnaireInformation=information.get('questionnaireInformation')
+                questionnaire.maxRecovery=information.get('maxRecovery')
+                questionnaire.save()
+                questions = information.get('questionList')
+                for question in questions:
+                    questionId = question.get('questionId')
+                    myQuestion = Questions.objects.get(id=questionId)
+                    myQuestion.questionTitle = question.get('questionTitle')
+                    myQuestion.save()
+                    options = question.get('optionList')
                     for option in options:
-                        op = Options(
-                            questionId=questionId,
-                            optionOrder=option.get('optionOrder'),
-                            required=option.get('optionRequired'),
-                            optionContent=option.get('optionContent'),
-                            optionType=option.get('optionType'),
-                            optionScore=option.get('optionScore'),
-                            optionText=option.get('optionText')
-                        )
-                        op.save()
-            return JsonResponse({'status': 200, 'result': "保存成功"})
-            # except Exception:
-            #     return JsonResponse({'status': 400, 'result': "保存问卷失败"})
+                        optionId = option.get('optionId')
+                        myOption = Options.objects.get(id=optionId)
+                        myOption.optionContent = option.get('optionContent')
+                        myOption.save()
+                return JsonResponse({'status': 200, 'result': "修改成功"})
+            except Exception:
+                return JsonResponse({'status': 400, 'result': "修改失败"})
         else:
             return JsonResponse({'status': 400, 'result': "用户未登录"})
     else:
