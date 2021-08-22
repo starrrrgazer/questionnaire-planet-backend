@@ -293,12 +293,19 @@ def stopReleaseQuestionnaire(request):
 
 # 查看我的问卷
 def getMyQuestionnaire(request):
-    if request.method == 'GET':
+    if request.method == 'POST':
+        req = json.loads(request.body.decode())
+        method = req.method
         if request.session.get('id'):
             authorId = request.session.get('id')
             res = []
             try:
-                questionnaires = QuestionnaireInformation.objects.filter(authorId=authorId)
+                if method == 1:
+                    questionnaires = QuestionnaireInformation.objects.filter(authorId=authorId).order_by('setUpTime')
+                elif method == -1:
+                    questionnaires = QuestionnaireInformation.objects.filter(authorId=authorId).order_by('-setUpTime')
+                else:
+                    return JsonResponse({'status': 400, 'result': "排序方法出错"})
                 if questionnaires.exists():
                     questionnaireList = []
                     for questionnaire in questionnaires:
@@ -324,5 +331,15 @@ def getMyQuestionnaire(request):
                 return JsonResponse({'status': 400, 'result': "获取信息出错"})
         else:
             return JsonResponse({'status': 400, 'result': "用户未登录"})
+    else:
+        return JsonResponse({'status': 401, 'result': "请求方式错误"})
+
+
+# 查看问卷详细内容
+def getQuestionnaireDetails(request):
+    if request.method == 'POST':
+        req = json.loads(request.body.decode())
+        questionnaireId = req.questionnaireId
+
     else:
         return JsonResponse({'status': 401, 'result': "请求方式错误"})
