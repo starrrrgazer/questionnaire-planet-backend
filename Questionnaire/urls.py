@@ -11,4 +11,5 @@ urlpatterns = [
     path("releaseQuestionnaire", views.releaseQuestionnaire),
     path("stopReleaseQuestionnaire", views.stopReleaseQuestionnaire),
     path("getMyQuestionnaire", views.getMyQuestionnaire),
+    path("getQuestionnaireDetails", views.getQuestionnaireDetails),
 ]
