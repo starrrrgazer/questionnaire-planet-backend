@@ -293,19 +293,12 @@ def stopReleaseQuestionnaire(request):
 
 # 查看我的问卷
 def getMyQuestionnaire(request):
-    if request.method == 'POST':
-        req = json.loads(request.body.decode())
-        method = req.method
+    if request.method == 'GET':
         if request.session.get('id'):
             authorId = request.session.get('id')
             res = []
             try:
-                if method == 1:
-                    questionnaires = QuestionnaireInformation.objects.filter(authorId=authorId).order_by('setUpTime')
-                elif method == -1:
-                    questionnaires = QuestionnaireInformation.objects.filter(authorId=authorId).order_by('-setUpTime')
-                else:
-                    return JsonResponse({'status': 400, 'result': "排序方法出错"})
+                questionnaires = QuestionnaireInformation.objects.filter(authorId=authorId)
                 if questionnaires.exists():
                     questionnaireList = []
                     for questionnaire in questionnaires:
@@ -333,57 +326,3 @@ def getMyQuestionnaire(request):
             return JsonResponse({'status': 400, 'result': "用户未登录"})
     else:
         return JsonResponse({'status': 401, 'result': "请求方式错误"})
-
-
-# 查看问卷详细内容
-def getQuestionnaireDetails(request):
-    if request.method == 'POST':
-        req = json.loads(request.body.decode())
-        questionnaireId = req.questionnaireId
-        try:
-            questionnaire = QuestionnaireInformation.objects.get(questionnaireId=questionnaireId)
-        except Exception:
-            return JsonResponse({'status': 400, 'result': "找不到该问卷"})
-        else:
-            questionList = []
-            questions = Questions.objects.filter(questionnaireId=questionnaireId).order_by('questionOrder')
-            for question in questions:
-                questionId = question.id
-                optionList = []
-                options = Options.objects.filter(questionId=questionId).order_by('optionOrder')
-                for option in options:
-                    optionList.append(
-                        {
-                            'optionId': option.id,
-                            'optionOrder': option.optionOrder,
-                            'required': option.required,
-                            'optionContent': option.optionContent,
-                            'optionType': option.optionType,
-                            'optionScore': option.optionScore,
-                            'optionText': option.optionText,
-                        }
-                    )
-                questionList.append(
-                    {
-                        'questionId': question.id,
-                        'questionTitle': question.questionTitle,
-                        'questionTypeId': question.questionTypeId,
-                        'required': question.required,
-                        'multipleChoice': question.multipleChoice,
-                        'choiceAmount': question.choiceAmount,
-                        'questionOrder': question.questionOrder,
-                        'optionList':optionList
-                    }
-                )
-            res = {
-                'questionnaireTitle': questionnaire.questionnaireTitle,
-                'questionnaireInformation': questionnaire.questionnaireInformation,
-                'questionAmount': questionnaire.questionAmount,
-                'questionList': questionList,
-                'status': 200,
-                'result': "获取问卷信息成功"
-            }
-            return JsonResponse(res)
-    else:
-        return JsonResponse({'status': 401, 'result': "请求方式错误"})
-
