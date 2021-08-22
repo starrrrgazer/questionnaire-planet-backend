@@ -241,6 +241,7 @@ def saveQuestionnaire(request):
                                 optionScore=option.optionScore,
                                 optionText=option.optionText
                             )
+                            op.save()
                 return JsonResponse({'status': 200, 'result': "保存成功"})
             except Exception:
                 return JsonResponse({'status': 400, 'result': "保存问卷失败"})
@@ -387,3 +388,59 @@ def getQuestionnaireDetails(request):
     else:
         return JsonResponse({'status': 401, 'result': "请求方式错误"})
 
+
+# 问卷编辑（发布前）
+def editQuestionnaire(request):
+    if request.method == 'POST':
+        if request.session.get('id'):
+            authorId = request.session.get('id')
+            try:
+                information = json.loads(request.body.decode())
+                oldQuestionnaireId = information.questionnaireId
+                oldQuestions = Questions.objects.filter(questionnaireId=oldQuestionnaireId)
+                for oldQuestion in oldQuestions:
+                    oldQuestion.questionnaireId = -1
+                    oldQuestion.save()
+                questionnaire = QuestionnaireInformation(
+                    authorId=authorId,
+                    questionnaireTitle=information.questionnaireTitle,
+                    questionnaireInformation=information.questionnaireInformation,
+                    maxRecovery=information.maxRecovery,
+                    questionAmount=information.questionnaireAmount
+                )
+                questionnaire.save()
+                questionnaireId = questionnaire.id
+                problems = information.questionList
+                for problem in problems:
+                    question = Questions(
+                        questionnaireId=questionnaireId,
+                        questionTitle=problem.questionTitle,
+                        required=problem.questionRequired,
+                        questionTypeId=problem.questionTypeId,
+                        multipleChoice=problem.multipleChoice,
+                        choiceAmount=problem.choiceAmount,
+                        questionOrder=problem.questionOrder
+                    )
+                    question.save()
+                    questionId = question.id
+                    # 判断是否有optionList
+                    if "optionList" in problem:
+                        options = problem.optionList
+                        for option in options:
+                            op = Options(
+                                questionId=questionId,
+                                optionOrder=option.optionOrder,
+                                required=option.optionRequired,
+                                optionContent=option.optionContent,
+                                optionType=option.optionType,
+                                optionScore=option.optionScore,
+                                optionText=option.optionText
+                            )
+                            op.save()
+                return JsonResponse({'status': 200, 'result': "保存成功"})
+            except Exception:
+                return JsonResponse({'status': 400, 'result': "保存问卷失败"})
+        else:
+            return JsonResponse({'status': 400, 'result': "用户未登录"})
+    else:
+        return JsonResponse({'status': 401, 'result': "请求方式错误"})
