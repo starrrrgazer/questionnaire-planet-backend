@@ -7,7 +7,7 @@ import datetime
 # 问卷信息
 class QuestionnaireInformation(models.Model):
     # 发起者Id
-    authorId = models.IntegerField(null=False,unique=True)
+    authorId = models.IntegerField(null=False)
     # 问卷标题
     questionnaireTitle = models.CharField(max_length=32,null=False)
     # 问卷介绍
