@@ -1,6 +1,8 @@
 import json
 from Questionnaire.models import *
+from user.models import *
 from django.http import JsonResponse, HttpResponse
+from django.core import serializers
 
 from django.shortcuts import render
 
@@ -180,4 +182,85 @@ def backQuestionnaire(request):
         return JsonResponse({
             "status": 401,
             "result": "请求方式错误"
+        })
+
+# 按问卷回收量排序
+def sortByRecoveryAmount(request):
+    if request.method == "GET":
+        Questionnaires = QuestionnaireInformation.objects.all().order_by('-recoveryAmount')
+        myData = []
+        # Questionnaires = QuestionnaireInformation.objects.all().order_by('-recoveryAmount')
+        for questionnaire in Questionnaires:
+            myData.append({"id":questionnaire.id,
+                           "author":user.objects.get(id = questionnaire.authorId).id,
+                           "title":questionnaire.questionnaireTitle,
+                           "content":questionnaire.questionnaireInformation,
+                           "setUpTime": questionnaire.setUpTime,
+                           "latestAlterTime":questionnaire.latestAlterTime,
+                           "startTime":questionnaire.startTime,
+                           "endTime":questionnaire.endTime,
+                           "deadline":questionnaire.lastEndTime,
+                           "maxRecovery":questionnaire.maxRecovery,
+                           "currentState":questionnaire.currentState,
+                           "questionAmount":questionnaire.questionAmount,
+                           "answerAmount":questionnaire.recoveryAmount})
+
+        return JsonResponse({
+            "status":200,
+            "result":"排序成功",
+            "data":myData
+        })
+
+# 按发布时间排序
+def sortByStartTime(request):
+    if request.method == "GET":
+        Questionnaires = QuestionnaireInformation.objects.all().order_by('-startTime')
+        myData = []
+        # Questionnaires = QuestionnaireInformation.objects.all().order_by('-recoveryAmount')
+        for questionnaire in Questionnaires:
+            myData.append({"id":questionnaire.id,
+                           "author":user.objects.get(id = questionnaire.authorId).id,
+                           "title":questionnaire.questionnaireTitle,
+                           "content":questionnaire.questionnaireInformation,
+                           "setUpTime": questionnaire.setUpTime,
+                           "latestAlterTime":questionnaire.latestAlterTime,
+                           "startTime":questionnaire.startTime,
+                           "endTime":questionnaire.endTime,
+                           "deadline":questionnaire.lastEndTime,
+                           "maxRecovery":questionnaire.maxRecovery,
+                           "currentState":questionnaire.currentState,
+                           "questionAmount":questionnaire.questionAmount,
+                           "answerAmount":questionnaire.recoveryAmount})
+
+        return JsonResponse({
+            "status":200,
+            "result":"排序成功",
+            "data":myData
+        })
+
+# 按创建时间排序
+def sortBySetUpTime(request):
+    if request.method == "GET":
+        Questionnaires = QuestionnaireInformation.objects.all().order_by('-setUpTime')
+        myData = []
+        # Questionnaires = QuestionnaireInformation.objects.all().order_by('-recoveryAmount')
+        for questionnaire in Questionnaires:
+            myData.append({"id":questionnaire.id,
+                           "author":user.objects.get(id = questionnaire.authorId).id,
+                           "title":questionnaire.questionnaireTitle,
+                           "content":questionnaire.questionnaireInformation,
+                           "setUpTime": questionnaire.setUpTime,
+                           "latestAlterTime":questionnaire.latestAlterTime,
+                           "startTime":questionnaire.startTime,
+                           "endTime":questionnaire.endTime,
+                           "deadline":questionnaire.lastEndTime,
+                           "maxRecovery":questionnaire.maxRecovery,
+                           "currentState":questionnaire.currentState,
+                           "questionAmount":questionnaire.questionAmount,
+                           "answerAmount":questionnaire.recoveryAmount})
+
+        return JsonResponse({
+            "status":200,
+            "result":"排序成功",
+            "data":myData
         })
