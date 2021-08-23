@@ -18,5 +18,6 @@ urlpatterns = [
     path("sortByRecoveryAmount", views.sortByRecoveryAmount),
     path("sortByStartTime", views.sortByStartTime),
     path("sortBySetUpTime", views.sortBySetUpTime),
-    path("submitQuestionnaire", views.submitQuestionnaire)
+    path("submitQuestionnaire", views.submitQuestionnaire),
+    path("getQuestionnaireId",views.getQuestionnaireId)
 ]
