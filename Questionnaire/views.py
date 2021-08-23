@@ -56,16 +56,18 @@ def getAnswerData(request):
 
             #     填空题
             elif question.questionTypeId == 2:
+                questionAmounts = len(answerQuestionnaires)
+                answerQuestionId = AnswerQuestions.objects.get(answerQuestionId=question.id,
+                                                               answerQuestionnaireId=answerQuestionnaires[0].id).id
+                answer1 = AnswerOptions.objects.get(answerQuestionId=answerQuestionId).completionContent
                 myQuestion.append(
-                    {'num': i, 'id': question.id,'type':2, 'answernum': 0, "question": question.questionTitle,'answer':''})
-                for answerQuestionnaire in answerQuestionnaires:
+                    {'num': i, 'id': question.id,'type':2, 'answernum': 0, "question": question.questionTitle,'answer':answer1})
+                for index in range(1,questionAmounts):
+                    answerQuestionnaire = answerQuestionnaires[index]
                     answerQuestionId = AnswerQuestions.objects.get(answerQuestionId=question.id,
                                                                    answerQuestionnaireId=answerQuestionnaire.id).id
 
                     completionContent = AnswerOptions.objects.get(answerQuestionId=answerQuestionId).completionContent
-                    # if answerQuestionnaires.index(answerQuestionnaire) == 0:
-                    #     myQuestion[0]['answer'] = completionContent
-                    # else:
                     myQuestion.append({"answer": completionContent})
                     myQuestion[0]['answernum'] += 1;
                     i1 += 1
@@ -112,7 +114,7 @@ def getAnswerData(request):
                                                              answerOptionOrder=1).optionScoreText
 
                     myQuestion[optionScore1-1]['Num'] += 1
-                    myQuestion[optionScore1-1]['comment'].append(optionScoreText1)
+                    myQuestion[optionScore1-1]['comment'].append({'cont':optionScoreText1})
                     myQuestion[0]['averageScore'] += optionScore1
                     myQuestion[0]['answernum'] += 1
 
