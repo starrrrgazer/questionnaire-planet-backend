@@ -122,7 +122,7 @@ class AnswerOptions(models.Model):
 #     填空内容
     completionContent = models.CharField(null=True,max_length=255)
 #     选项评分
-    optionScore = models.CharField(null=True,max_length=255)
+    optionScore = models.IntegerField(null=True)
 #     选项评分的评价
     optionScoreText = models.TextField(null=True)
 

@@ -31,7 +31,7 @@ def getAnswerData(request):
             # myQuestion.append({})
 
             # 选择题
-            if question.questionTypeId == 1:
+            if question.questionTypeId == 1 or question.questionTypeId == 5:
                 myQuestion.append(
                     {'num': i, 'id': question.id,'type':1, 'answernum': 0, "question": question.questionTitle, 'name': 'A',
                      'Num': 0})
@@ -83,7 +83,7 @@ def getAnswerData(request):
                     answerQuestionId = AnswerQuestions.objects.get(answerQuestionId=question.id,
                                                                    answerQuestionnaireId=answerQuestionnaire.id).id
                     # 取得评分
-                    optionScore1 = AnswerOptions.objects.get(answerQuestionId=answerQuestionId,answerOptionOrder = 1).optionScore
+                    optionScore1 = int(AnswerOptions.objects.get(answerQuestionId=answerQuestionId,answerOptionOrder = 1).optionScore)
                     myQuestion[optionScore1-1]['Num'] += 1
                     myQuestion[0]['averageScore'] += optionScore1
                     myQuestion[0]['answernum'] += 1
@@ -105,8 +105,8 @@ def getAnswerData(request):
                                                                    answerQuestionnaireId=answerQuestionnaire.id).id
 
                     # 取得评分
-                    optionScore1 = AnswerOptions.objects.get(answerQuestionId=answerQuestionId,
-                                                             answerOptionOrder=1).optionScore
+                    optionScore1 = int(AnswerOptions.objects.get(answerQuestionId=answerQuestionId,
+                                                             answerOptionOrder=1).optionScore)
         #             取得评价
                     optionScoreText1 = AnswerOptions.objects.get(answerQuestionId=answerQuestionId,
                                                              answerOptionOrder=1).optionScoreText
