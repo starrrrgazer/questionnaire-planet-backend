@@ -409,6 +409,7 @@ def submitQuestionnaire(request):
         answerQuestionnaire = AnswerQuestionnaire()
         answerQuestionnaire.questionnaireId = params.get("questionnaireId")
         answerQuestionnaire.commitTime = datetime.datetime.now()
+        answerQuestionnaire.save()
 
 
         for index in range(0,questionAmount):
@@ -418,10 +419,11 @@ def submitQuestionnaire(request):
                                                                        questionOrder=index+1).id
             newAnswerQuestion.questionTypeId = Questions.objects.get(id = newAnswerQuestion.answerQuestionId).questionTypeId
             newAnswerQuestion.answerOrder = index
+            newAnswerQuestion.save()
             if newAnswerQuestion.questionTypeId == 2:
                 newAnswerQuestion.answerText = newAnswerQuestions[index]['answer']
 
-            if newAnswerQuestion.questionTypeId == 1:
+            if newAnswerQuestion.questionTypeId == 1 or newAnswerQuestion.questionTypeId == 5 or newAnswerQuestion.questionTypeId == 6 :
                 newAnswerOption = AnswerOptions()
                 newAnswerOption.optionType =1;
                 newAnswerOption.optionContent = newAnswerQuestions[index]['answer']
@@ -461,11 +463,11 @@ def submitQuestionnaire(request):
                 newAnswerOption.answerOptionId = Options.objects.get(questionId=newAnswerQuestion.answerQuestionId,
                                                                      optionOrder=newAnswerOption.answerOptionOrder).id
                 newAnswerOption.save()
-        newAnswerQuestion.save()
-        answerQuestionnaire.save()
+
+
         return JsonResponse({
             'status':200,
-            'result':"创建问卷成功"
+            'result':"提交问卷成功"
         })
     else:
         return JsonResponse({
@@ -780,3 +782,4 @@ def getQuestionnaireId(request):
             "data":data,
             "result":"获取成功"
         })
+
