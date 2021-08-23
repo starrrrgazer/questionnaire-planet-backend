@@ -7,6 +7,7 @@ import random
 from django.views.decorators.csrf import csrf_exempt
 
 from user.models import user
+from Questionnaire.views import *
 
 defaultId = 0
 
@@ -16,7 +17,6 @@ def login(request):
         result = json.loads(request.body)
         newUsername = result.get("username");
         newPassword = result.get("password");
-
         users = user.objects.filter(username = newUsername)
         if len(users)==0:
             return JsonResponse({
@@ -34,6 +34,7 @@ def login(request):
             request.session['kind'] = "user"
             global defaultId
             defaultId = users[0].id
+            testSession(defaultId)
             # response["Access-Control-Allow-Origin"] = "http://localhost:8080"
             # response["Access-Control-Allow-Credentials"] = "true"
             return JsonResponse({

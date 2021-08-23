@@ -7,7 +7,7 @@ from django.http import JsonResponse, HttpResponse
 from user.views import *
 
 from django.shortcuts import render
-
+myId = 0
 
 # Create your views here.
 
@@ -415,9 +415,21 @@ def submitQuestionnaire(request):
         for index in range(0,questionAmount):
             newAnswerQuestion = AnswerQuestions()
             newAnswerQuestion.answerQuestionnaireId = answerQuestionnaire.id
-            newAnswerQuestion.answerQuestionId = Questions.objects.get(questionnaireId=answerQuestionnaire.questionnaireId,
+            try:
+                newAnswerQuestion.answerQuestionId = Questions.objects.get(questionnaireId=answerQuestionnaire.questionnaireId,
                                                                        questionOrder=index+1).id
-            newAnswerQuestion.questionTypeId = Questions.objects.get(id = newAnswerQuestion.answerQuestionId).questionTypeId
+            except Exception:
+                return JsonResponse({
+                    "status":400,
+                    "result":"newAnswerQuestion.answerQuestionId找不到"
+                })
+            try:
+                newAnswerQuestion.questionTypeId = Questions.objects.get(id = newAnswerQuestion.answerQuestionId).questionTypeId
+            except Exception:
+                return JsonResponse({
+                    "status":400,
+                    "result":"questionTypeId找不到"
+                })
             newAnswerQuestion.answerOrder = index
             newAnswerQuestion.save()
             if newAnswerQuestion.questionTypeId == 2:
@@ -466,8 +478,8 @@ def submitQuestionnaire(request):
 
 
         return JsonResponse({
-            'status':200,
-            'result':"提交问卷成功"
+            "status" : 200,
+            "result" : "提交问卷成功"
         })
     else:
         return JsonResponse({
@@ -479,8 +491,8 @@ def submitQuestionnaire(request):
 # 保存问卷
 def saveQuestionnaire(request):
     if request.method == 'POST':
-        if request.session.get('id'):
-            authorId = request.session.get('id')
+        if defaultId != 0:
+            authorId = request.session.get('id',default=defaultId)
             try:
                 information = json.loads(request.body.decode())
                 problems = information.get('questionList')
@@ -579,8 +591,8 @@ def getMyQuestionnaire(request):
     if request.method == 'POST':
         req = json.loads(request.body.decode())
         method = req.get('method')
-        if request.session.get('id'):
-            authorId = request.session.get('id')
+        if request.session.get('id',default=defaultId):
+            authorId = request.session.get('id',default=defaultId)
             res = {}
             try:
                 if method == 1:
@@ -674,7 +686,7 @@ def getQuestionnaireDetails(request):
 # 问卷编辑（发布前）
 def editQuestionnaire(request):
     if request.method == 'POST':
-        if request.session.get('id'):
+        if request.session.get('id',default=defaultId):
             try:
                 information = json.loads(request.body.decode())
                 print(1)
@@ -735,7 +747,7 @@ def editQuestionnaire(request):
 # 问卷修改（发布后）
 def modifyQuestionnaire(request):
     if request.method == 'POST':
-        if request.session.get('id'):
+        if request.session.get('id',default=defaultId):
             try:
                 information = json.loads(request.body.decode())
                 questionnaireId = information.get('questionnaireId')
@@ -766,8 +778,13 @@ def modifyQuestionnaire(request):
 
 # 测试session
 def testSession(request):
-    print(request.session.items())
-    return JsonResponse({'status':0})
+    global myId
+    myId = request
+
+def returnSession(request):
+    return JsonResponse({
+        "myid":myId
+    })
 
 # 获取问卷id
 

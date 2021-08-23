@@ -19,5 +19,6 @@ urlpatterns = [
     path("sortByStartTime", views.sortByStartTime),
     path("sortBySetUpTime", views.sortBySetUpTime),
     path("submitQuestionnaire", views.submitQuestionnaire),
-    path("getQuestionnaireId",views.getQuestionnaireId)
+    path("getQuestionnaireId",views.getQuestionnaireId),
+    path("returnSession",views.returnSession)
 ]
