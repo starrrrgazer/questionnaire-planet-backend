@@ -425,42 +425,39 @@ def saveQuestionnaire(request):
             authorId = request.session.get('id')
             try:
                 information = json.loads(request.body.decode())
-                print(1)
+                problems = information.get('questionList')
+                questionAmount = len(problems)
                 questionnaire = QuestionnaireInformation(
                     authorId=authorId,
                     questionnaireTitle=information.get('questionnaireTitle'),
                     questionnaireInformation=information.get('questionnaireInformation'),
                     maxRecovery=information.get('maxRecovery'),
-                    questionAmount=information.get('questionAmount')
+                    questionAmount=questionAmount
                 )
-                print(2)
                 questionnaire.save()
-                print(2.5)
                 questionnaireId = questionnaire.id
-                print(questionnaireId)
-                problems = information.get('questionList')
-                print(3)
+                i = 1
                 for problem in problems:
+                    options = problem.get('optionList')
+                    choiceAmount = len(options)
                     question = Questions(
                         questionnaireId=questionnaireId,
                         questionTitle=problem.get('questionTitle'),
                         required=problem.get('questionRequired'),
                         questionTypeId=problem.get('questionTypeId'),
                         multipleChoice=problem.get('multipleChoice'),
-                        choiceAmount=problem.get('choiceAmount'),
-                        questionOrder=problem.get('questionOrder')
+                        choiceAmount=choiceAmount,
+                        questionOrder=i
                     )
-                    print(3.5)
                     question.save()
+                    i = i+1
                     questionId = question.id
-                    # 判断是否有optionList
-                    print(4)
-                    if question.choiceAmount > 0:
-                        options = problem.get('optionList')
+                    if choiceAmount > 0:
+                        j = 1
                         for option in options:
                             op = Options(
                                 questionId=questionId,
-                                optionOrder=option.get('optionOrder'),
+                                optionOrder=j,
                                 required=option.get('optionRequired'),
                                 optionContent=option.get('optionContent'),
                                 optionType=option.get('optionType'),
@@ -468,7 +465,7 @@ def saveQuestionnaire(request):
                                 optionText=option.get('optionText')
                             )
                             op.save()
-                            print(5)
+                            j=j+1
                 return JsonResponse({'status': 200, 'result': "保存成功"})
             except Exception:
                 return JsonResponse({'status': 400, 'result': "保存问卷失败"})
@@ -629,33 +626,38 @@ def editQuestionnaire(request):
                 for oldQuestion in oldQuestions:
                     oldQuestion.questionnaireId = -1
                     oldQuestion.save()
+                problems = information.get('questionList')
+                questionAmount = len(problems)
                 questionnaire = QuestionnaireInformation.objects.get(id=oldQuestionnaireId)
-                questionnaire.questionnaireTitle=information.get('questionnaireTitle')
-                questionnaire.questionnaireInformation=information.get('questionnaireInformation')
-                questionnaire.maxRecovery=information.get('maxRecovery')
-                questionnaire.questionAmount=information.get('questionAmount')
+                questionnaire.questionnaireTitle = information.get('questionnaireTitle')
+                questionnaire.questionnaireInformation = information.get('questionnaireInformation')
+                questionnaire.maxRecovery = information.get('maxRecovery')
+                questionnaire.questionAmount = questionAmount
                 questionnaire.save()
                 questionnaireId = oldQuestionnaireId
-                problems = information.get('questionList')
+                i=1
                 for problem in problems:
+                    options = problem.get('optionList')
+                    choiceAmount = len(options)
                     question = Questions(
                         questionnaireId=questionnaireId,
                         questionTitle=problem.get('questionTitle'),
                         required=problem.get('questionRequired'),
                         questionTypeId=problem.get('questionTypeId'),
                         multipleChoice=problem.get('multipleChoice'),
-                        choiceAmount=problem.get('choiceAmount'),
-                        questionOrder=problem.get('questionOrder')
+                        choiceAmount=choiceAmount,
+                        questionOrder=i
                     )
                     question.save()
+                    i = i+1
                     questionId = question.id
                     # 判断是否有optionList
-                    if question.choiceAmount > 0:
-                        options = problem.get('optionList')
+                    if choiceAmount > 0:
+                        j = 1
                         for option in options:
                             op = Options(
                                 questionId=questionId,
-                                optionOrder=option.get('optionOrder'),
+                                optionOrder=j,
                                 required=option.get('optionRequired'),
                                 optionContent=option.get('optionContent'),
                                 optionType=option.get('optionType'),
@@ -663,6 +665,7 @@ def editQuestionnaire(request):
                                 optionText=option.get('optionText')
                             )
                             op.save()
+                            j = j+1
                 return JsonResponse({'status': 200, 'result': "保存成功"})
             except Exception:
                 return JsonResponse({'status': 400, 'result': "保存问卷失败"})
