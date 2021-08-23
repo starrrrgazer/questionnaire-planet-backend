@@ -349,13 +349,14 @@ def sortBySetUpTime(request):
 def submitQuestionnaire(request):
     if request.method == 'POST':
         params = json.loads(request.body)
-        questionAmount = params.get("questionAmount")
+        # 数组
+        newAnswerQuestions = params.get("answerQuestions")
+        questionAmount = len(newAnswerQuestions)
         answerQuestionnaire = AnswerQuestionnaire()
         answerQuestionnaire.questionnaireId = params.get("questionnaireId")
         answerQuestionnaire.commitTime = datetime.datetime.now()
         answerQuestionnaire.save()
-        # 数组
-        newAnswerQuestions = params.get("answerQuestions")
+
         for index in range(0,questionAmount):
             newAnswerQuestion = AnswerQuestions()
             newAnswerQuestion.answerQuestionnaireId = answerQuestionnaire.id

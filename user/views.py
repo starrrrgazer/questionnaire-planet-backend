@@ -4,8 +4,6 @@ from django.http import JsonResponse, HttpResponse
 
 import random
 # from utils import zhenzismsclient
-
-# Create your views here.
 from django.views.decorators.csrf import csrf_exempt
 
 from user.models import user
@@ -42,7 +40,8 @@ def login(request):
                 "status": 200,
                 "result": "登录成功",
                 "uid":users[0].id,
-                "session":request.session.get('id')
+                "session":request.session.get('id'),
+                "session2":request.session.get('kind'),
             })
 
 def register(request):
@@ -89,3 +88,16 @@ def getMyInfo(request):
             "session":request.session.get('kind')
         })
 
+def logout(request):
+    if request.method == 'GET':
+        global defaultId
+        defaultId = 0
+        return JsonResponse({
+            "status":200,
+            "result":"登出成功"
+        })
+    else:
+        return JsonResponse({
+            "status": 400,
+            "result": "请求方式错误"
+        })
