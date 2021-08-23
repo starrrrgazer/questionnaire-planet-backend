@@ -14,4 +14,9 @@ urlpatterns = [
     path("getQuestionnaireDetails", views.getQuestionnaireDetails),
     path("editQuestionnaire", views.editQuestionnaire),
     path("modifyQuestionnaire", views.modifyQuestionnaire),
+    path("testSession", views.testSession),
+    path("sortByRecoveryAmount", views.sortByRecoveryAmount),
+    path("sortByStartTime", views.sortByStartTime),
+    path("sortBySetUpTime", views.sortBySetUpTime),
+    path("submitQuestionnaire", views.submitQuestionnaire)
 ]
