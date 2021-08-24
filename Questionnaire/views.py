@@ -11,10 +11,10 @@ myId = 0
 
 # Create your views here.
 
-# 获取问卷结果的数据
+
 from user.models import user
 
-
+# 获取问卷结果的数据
 def getAnswerData(request):
     if request.method == 'POST':
         questionnaireId = json.loads(request.body).get("questionnaireId");
