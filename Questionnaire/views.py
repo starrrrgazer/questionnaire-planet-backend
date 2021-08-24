@@ -31,11 +31,12 @@ def getAnswerData(request):
             # 选择题
             if question.questionTypeId == 1 or question.questionTypeId == 6:
                 myQuestion.append(
-                    {'num': i, 'id': question.id,'type':1, 'answernum': 0, "question": question.questionTitle, 'name': 'A',
+                    {'num': i, 'id': question.id,'type':1, 'answernum': 0, "question": question.questionTitle,
+                     'name':'A:'+Options.objects.get(questionId=question.id,optionOrder=1).optionContent,
                      'Num': 0})
                 k = 'B'
                 for index in range(2, question.choiceAmount + 1):
-                    myQuestion.append({'name': k, 'Num': 0})
+                    myQuestion.append({ 'name':k+':'+Options.objects.get(questionId=question.id,optionOrder=index).optionContent, 'Num': 0})
                     m = ord(k)
                     m += 1
                     k = chr(m)
@@ -56,11 +57,11 @@ def getAnswerData(request):
             elif question.questionTypeId == 5:
                 myQuestion.append(
                     {'num': i, 'id': question.id, 'type': 1, 'answernum': 0, "question": question.questionTitle,
-                     'name': 'A',
+                     'name':'A:'+Options.objects.get(questionId=question.id,optionOrder=1).optionContent,
                      'Num': 0})
                 k = 'B'
                 for index in range(2, question.choiceAmount + 1):
-                    myQuestion.append({'name': k, 'Num': 0})
+                    myQuestion.append({'name':k+':'+Options.objects.get(questionId=question.id,optionOrder=index).optionContent, 'Num': 0})
                     m = ord(k)
                     m += 1
                     k = chr(m)
