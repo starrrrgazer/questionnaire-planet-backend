@@ -31,9 +31,11 @@ def login(request):
         else:
             request.session.set_expiry(0)
             request.session['id'] = users[0].id
+            print(users[0].id)
             request.session['kind'] = "user"
             global defaultId
             defaultId = users[0].id
+            print(100)
             testSession(defaultId)
             return JsonResponse({
                 "status": 200,

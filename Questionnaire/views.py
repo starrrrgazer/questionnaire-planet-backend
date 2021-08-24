@@ -850,3 +850,14 @@ def getQuestionnaireId(request):
             "result":"获取成功"
         })
 
+# 彻底删除问卷
+def deleteCompletelyQuestionnaire(request):
+    if request.method == 'POST':
+        req = json.loads(request.body.decode())
+        questionnaireId = req.get('questionnaireId')
+        questionnaire = QuestionnaireInformation.objects.get(id=questionnaireId)
+        questionnaire.delete()
+        return JsonResponse({'status': 200, 'result': "删除成功"})
+    else:
+        return JsonResponse({'status': 401, 'result': "请求方式错误"})
+
