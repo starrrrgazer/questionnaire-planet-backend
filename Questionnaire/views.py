@@ -26,19 +26,13 @@ def getAnswerData(request):
         i = 1;i1 = 1;
         # 遍历题目
         for question in questions:
-            # 查询选项内容
-            # options = Options.objects.filter(questionId = question)
             myQuestion = []
-            # myQuestion.append({})
 
             # 选择题
-            if question.questionTypeId == 1 or question.questionTypeId == 5 or question.questionTypeId == 6:
+            if question.questionTypeId == 1  or question.questionTypeId == 6:
                 myQuestion.append(
                     {'num': i, 'id': question.id,'type':1, 'answernum': 0, "question": question.questionTitle, 'name': 'A',
                      'Num': 0})
-                # myQuestion.append({'name': 'B', 'Num': 0})
-                # myQuestion.append({'name': 'C', 'Num': 0})
-                # myQuestion.append({'name': 'D', 'Num': 0})
                 k = 'B'
                 for index in range(2, question.choiceAmount + 1):
                     myQuestion.append({'name': k, 'Num': 0})
@@ -54,20 +48,36 @@ def getAnswerData(request):
                     optionContent = AnswerOption.optionContent
                     if '1' in optionContent: myQuestion[0]['Num'] += 1
                     for index in range(2,question.choiceAmount+1):
-                        # myQuestion.append({'name': k, 'Num': 0})
-                        # m = ord(k)
-                        # m+=1
-                        # k = chr(m)
                         if str(index) in optionContent: myQuestion[index-1]['Num'] += 1
-
-                    # if '1' in optionContent: myQuestion[0]['Num'] += 1
-                    # if '2' in optionContent: myQuestion[1]['Num'] += 1
-                    # if '3' in optionContent: myQuestion[2]['Num'] += 1
-                    # if '4' in optionContent: myQuestion[3]['Num'] += 1
                     myQuestion[0]['answernum'] += 1
                 # params.append({'answernum':k});#每道题填写人数
                 params.append(myQuestion)
 
+            elif question.questionTypeId == 5:
+                myQuestion.append(
+                    {'num': i, 'id': question.id, 'type': 1, 'answernum': 0, "question": question.questionTitle,
+                     'name': 'A',
+                     'Num': 0})
+                k = 'B'
+                for index in range(2, question.choiceAmount + 1):
+                    myQuestion.append({'name': k, 'Num': 0})
+                    m = ord(k)
+                    m += 1
+                    k = chr(m)
+                i += 1
+                for answerQuestionnaire in answerQuestionnaires:
+                    answerQuestion = AnswerQuestions.objects.get(answerQuestionId=question.id,
+                                                                 answerQuestionnaireId=answerQuestionnaire.id)
+                    answerQuestionId = answerQuestion.id
+                    AnswerOptions1 = AnswerOptions.objects.filter(answerQuestionId=answerQuestionId)
+                    AnswerOption1 = AnswerOptions1[0]
+                    optionContent = AnswerOption1.optionContent
+                    if '1' in optionContent: myQuestion[0]['Num'] += 1
+                    for index in range(2, question.choiceAmount + 1):
+                        if str(index) in optionContent: myQuestion[index - 1]['Num'] += 1
+                    myQuestion[0]['answernum'] += 1
+                # params.append({'answernum':k});#每道题填写人数
+                params.append(myQuestion)
             #     填空题
             elif question.questionTypeId == 2:
                 questionAmounts = len(answerQuestionnaires)
@@ -203,11 +213,18 @@ def getAnswer(request):
             cnt += 1
             i = 1
             for answerQuestionnaire in answerQuestionnaires:
-                if question.questionTypeId == 1 or question.questionTypeId == 5 or question.questionTypeId == 6:
+                if question.questionTypeId == 1  or question.questionTypeId == 6:
                     AnswerQuestion = AnswerQuestions.objects.get(answerQuestionId=question.id,answerQuestionnaireId=answerQuestionnaire.id)
                     AnswerOption = AnswerOptions.objects.get(answerQuestionId=AnswerQuestion.id)
                     params[count]['answer'+str(i)] =AnswerOption.optionContent
                     i+=1
+                if question.questionTypeId == 5:
+                    AnswerQuestion = AnswerQuestions.objects.get(answerQuestionId=question.id,
+                                                                 answerQuestionnaireId=answerQuestionnaire.id)
+                    AnswerOptions1 = AnswerOptions.objects.filter(answerQuestionId=AnswerQuestion.id)
+                    AnswerOption = AnswerOptions1[0]
+                    params[count]['answer' + str(i)] = AnswerOption.optionContent
+                    i += 1
                 if question.questionTypeId == 2:
                     AnswerQuestion = AnswerQuestions.objects.get(answerQuestionId=question.id,
                                                                  answerQuestionnaireId=answerQuestionnaire.id)
@@ -435,15 +452,29 @@ def submitQuestionnaire(request):
             if newAnswerQuestion.questionTypeId == 2:
                 newAnswerQuestion.answerText = newAnswerQuestions[index]['answer']
 
-            if newAnswerQuestion.questionTypeId == 1 or newAnswerQuestion.questionTypeId == 5 or newAnswerQuestion.questionTypeId == 6 :
+            if newAnswerQuestion.questionTypeId == 1 or newAnswerQuestion.questionTypeId == 6 :
                 newAnswerOption = AnswerOptions()
-                newAnswerOption.optionType =1;
+                newAnswerOption.optionType = 1;
                 newAnswerOption.optionContent = newAnswerQuestions[index]['answer']
                 newAnswerOption.answerOptionOrder = newAnswerQuestions[index]['answer']
                 newAnswerOption.answerQuestionId = newAnswerQuestion.id
                 newAnswerOption.answerOptionId = Options.objects.get(questionId= newAnswerQuestion.answerQuestionId,
                                                                      optionOrder= newAnswerOption.answerOptionOrder).id
                 newAnswerOption.save()
+            elif newAnswerQuestion.questionTypeId == 5 :
+                answer = newAnswerQuestions[index]['answer']
+                answerAmount = len(answer)
+                for i in range(0,answerAmount):
+                    newAnswerOption = AnswerOptions()
+                    newAnswerOption.optionType = 1;
+                    newAnswerOption.optionContent = newAnswerQuestions[index]['answer']
+                    newAnswerOption.answerOptionOrder = newAnswerQuestions[index]['answer'][i]
+                    newAnswerOption.answerQuestionId = newAnswerQuestion.id
+                    newAnswerOption.answerOptionId = Options.objects.get(questionId=newAnswerQuestion.answerQuestionId,
+                                                                         optionOrder=newAnswerOption.answerOptionOrder).id
+                    newAnswerOption.save()
+
+
             elif newAnswerQuestion.questionTypeId == 2:
                 newAnswerOption = AnswerOptions()
                 newAnswerOption.optionType = 2;
@@ -451,8 +482,9 @@ def submitQuestionnaire(request):
                 newAnswerOption.answerOptionOrder = 1
                 newAnswerOption.completionContent = newAnswerQuestions[index]['answer']
                 newAnswerOption.answerQuestionId = newAnswerQuestion.id
-                newAnswerOption.answerOptionId = Options.objects.get(questionId=newAnswerQuestion.answerQuestionId,
-                                                                     optionOrder=newAnswerOption.answerOptionOrder).id
+                # newAnswerOption.answerOptionId = Options.objects.get(questionId=newAnswerQuestion.answerQuestionId,
+                #                                                      ).id
+                newAnswerOption.answerOptionId = -1
                 newAnswerOption.save()
             elif newAnswerQuestion.questionTypeId == 3:
                 newAnswerOption = AnswerOptions()
@@ -461,8 +493,9 @@ def submitQuestionnaire(request):
                 newAnswerOption.answerOptionOrder = 1
                 newAnswerOption.optionScore = newAnswerQuestions[index]['answer']
                 newAnswerOption.answerQuestionId = newAnswerQuestion.id
-                newAnswerOption.answerOptionId = Options.objects.get(questionId=newAnswerQuestion.answerQuestionId,
-                                                                     optionOrder=newAnswerOption.answerOptionOrder).id
+                # newAnswerOption.answerOptionId = Options.objects.get(questionId=newAnswerQuestion.answerQuestionId,
+                #                                                      ).id
+                newAnswerOption.answerOptionId = -1
                 newAnswerOption.save()
             elif newAnswerQuestion.questionTypeId == 4:
                 newAnswerOption = AnswerOptions()
@@ -472,8 +505,9 @@ def submitQuestionnaire(request):
                 newAnswerOption.optionScore = newAnswerQuestions[index]['answer']
                 newAnswerOption.optionScoreText = newAnswerQuestions[index]['comment']
                 newAnswerOption.answerQuestionId = newAnswerQuestion.id
-                newAnswerOption.answerOptionId = Options.objects.get(questionId=newAnswerQuestion.answerQuestionId,
-                                                                     optionOrder=newAnswerOption.answerOptionOrder).id
+                # newAnswerOption.answerOptionId = Options.objects.get(questionId=newAnswerQuestion.answerQuestionId,
+                #                                                      ).id
+                newAnswerOption.answerOptionId = -1
                 newAnswerOption.save()
 
 
@@ -491,8 +525,12 @@ def submitQuestionnaire(request):
 # 保存问卷
 def saveQuestionnaire(request):
     if request.method == 'POST':
-        if defaultId != 0:
-            authorId = request.session.get('id',default=defaultId)
+        global myId
+        k = myId
+        if myId != 0:
+            authorId = request.session.get('id',default=myId)
+            # global myId
+            myId = k
             try:
                 information = json.loads(request.body.decode())
                 problems = information.get('questionList')
@@ -591,8 +629,11 @@ def getMyQuestionnaire(request):
     if request.method == 'POST':
         req = json.loads(request.body.decode())
         method = req.get('method')
-        if request.session.get('id',default=defaultId):
-            authorId = request.session.get('id',default=defaultId)
+        global myId
+        k = myId
+        if request.session.get('id',default=myId):
+            authorId = request.session.get('id',myId)
+            myId = k
             res = {}
             try:
                 if method == 1:
@@ -686,7 +727,10 @@ def getQuestionnaireDetails(request):
 # 问卷编辑（发布前）
 def editQuestionnaire(request):
     if request.method == 'POST':
-        if request.session.get('id',default=defaultId):
+        global myId
+        k = myId
+        if request.session.get('id',default=myId):
+            myId = k
             try:
                 information = json.loads(request.body.decode())
                 print(1)
@@ -747,7 +791,10 @@ def editQuestionnaire(request):
 # 问卷修改（发布后）
 def modifyQuestionnaire(request):
     if request.method == 'POST':
-        if request.session.get('id',default=defaultId):
+        global myId
+        k = myId
+        if request.session.get('id',default=myId):
+            myId = k
             try:
                 information = json.loads(request.body.decode())
                 questionnaireId = information.get('questionnaireId')
@@ -790,7 +837,10 @@ def returnSession(request):
 
 def getQuestionnaireId(request):
     if request.method == 'GET':
-        questionnaireIds = QuestionnaireInformation.objects.filter(authorId=defaultId)
+        global myId
+        k = myId
+        questionnaireIds = QuestionnaireInformation.objects.filter(authorId=myId)
+        myId = k
         data = []
         for questionnaireId in questionnaireIds:
             data.append({'id':questionnaireId.id})

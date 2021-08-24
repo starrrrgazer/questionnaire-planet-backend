@@ -35,14 +35,13 @@ def login(request):
             global defaultId
             defaultId = users[0].id
             testSession(defaultId)
-            # response["Access-Control-Allow-Origin"] = "http://localhost:8080"
-            # response["Access-Control-Allow-Credentials"] = "true"
             return JsonResponse({
                 "status": 200,
                 "result": "登录成功",
                 "uid":users[0].id,
                 "session":request.session.get('id'),
                 "session2":request.session.get('kind'),
+                "session3":defaultId
             })
 
 def register(request):
