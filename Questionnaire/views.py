@@ -426,6 +426,9 @@ def submitQuestionnaire(request):
         questionAmount = len(newAnswerQuestions)
         answerQuestionnaire = AnswerQuestionnaire()
         answerQuestionnaire.questionnaireId = params.get("questionnaireId")
+        Questionnaire = QuestionnaireInformation.objects.get(id = params.get("questionnaireId"))
+        Questionnaire.recoveryAmount += 1;
+        Questionnaire.save()
         answerQuestionnaire.commitTime = datetime.datetime.now()
         answerQuestionnaire.save()
 

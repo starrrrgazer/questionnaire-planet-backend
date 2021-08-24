@@ -156,8 +156,8 @@ CORS_ORIGIN_ALLOW_ALL = True
 CORS_ORIGIN_WHITELIST = (
     'http://localhost:8080',
     'http://192.168.1.26:8080',
-    'http://123.56.2.2:8086/#/homemain',
-    'http://52.136.132.191：8081'
+    'http://123.56.2.2:8086',
+    'http://52.136.132.191:8081',
 )
 
 CORS_ALLOW_METHODS = (
