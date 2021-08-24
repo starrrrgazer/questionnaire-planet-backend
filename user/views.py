@@ -33,10 +33,6 @@ def login(request):
             request.session['id'] = users[0].id
             print(users[0].id)
             request.session['kind'] = "user"
-            global defaultId
-            defaultId = users[0].id
-            print(100)
-            testSession(defaultId)
             return JsonResponse({
                 "status": 200,
                 "result": "登录成功",
@@ -75,9 +71,15 @@ def register(request):
 
 
 def getMyInfo(request):
-    if request.method == 'GET':
-        if defaultId != 0:
-            myuser = user.objects.get(id=request.session.get('id',default=defaultId))
+    if request.method == 'POST':
+        req = json.loads(request.body.decode())
+        try:
+            authorId = req.get('authorId')
+            print(authorId)
+        except Exception:
+            return JsonResponse({'status':400,'result':"用户未登录"})
+        else:
+            myuser = user.objects.get(id=authorId)
             return JsonResponse({
                 "status":200,
                 "result":"请求成功",
@@ -86,14 +88,10 @@ def getMyInfo(request):
                 "phone":myuser.phone,
                 "uid":myuser.id,
             })
-        else: return JsonResponse({
-            "session":request.session.get('kind')
-        })
+
 
 def logout(request):
     if request.method == 'GET':
-        global defaultId
-        defaultId = 0
         return JsonResponse({
             "status":200,
             "result":"登出成功"

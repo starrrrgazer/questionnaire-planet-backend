@@ -29,7 +29,7 @@ def getAnswerData(request):
             myQuestion = []
 
             # 选择题
-            if question.questionTypeId == 1  or question.questionTypeId == 6:
+            if question.questionTypeId == 1 or question.questionTypeId == 6:
                 myQuestion.append(
                     {'num': i, 'id': question.id,'type':1, 'answernum': 0, "question": question.questionTitle, 'name': 'A',
                      'Num': 0})
@@ -525,60 +525,54 @@ def submitQuestionnaire(request):
 # 保存问卷
 def saveQuestionnaire(request):
     if request.method == 'POST':
-        global myId
-        k = myId
-        if myId != 0:
-            authorId = request.session.get('id',default=myId)
-            # global myId
-            myId = k
-            try:
-                information = json.loads(request.body.decode())
-                problems = information.get('questionList')
-                questionAmount = len(problems)
-                questionnaire = QuestionnaireInformation(
-                    authorId=authorId,
-                    questionnaireTitle=information.get('questionnaireTitle'),
-                    questionnaireInformation=information.get('questionnaireInformation'),
-                    maxRecovery=information.get('maxRecovery'),
-                    questionAmount=questionAmount
+        try:
+            information = json.loads(request.body.decode())
+            authorId = information.get('authorId')
+            print(authorId)
+            problems = information.get('questionList')
+            questionAmount = len(problems)
+            questionnaire = QuestionnaireInformation(
+                authorId=authorId,
+                questionnaireTitle=information.get('questionnaireTitle'),
+                questionnaireInformation=information.get('questionnaireInformation'),
+                maxRecovery=information.get('maxRecovery'),
+                questionAmount=questionAmount
+            )
+            questionnaire.save()
+            questionnaireId = questionnaire.id
+            i = 1
+            for problem in problems:
+                options = problem.get('optionList')
+                choiceAmount = len(options)
+                question = Questions(
+                    questionnaireId=questionnaireId,
+                    questionTitle=problem.get('questionTitle'),
+                    required=problem.get('questionRequired'),
+                    questionTypeId=problem.get('questionTypeId'),
+                    multipleChoice=problem.get('multipleChoice'),
+                    choiceAmount=choiceAmount,
+                    questionOrder=i
                 )
-                questionnaire.save()
-                questionnaireId = questionnaire.id
-                i = 1
-                for problem in problems:
-                    options = problem.get('optionList')
-                    choiceAmount = len(options)
-                    question = Questions(
-                        questionnaireId=questionnaireId,
-                        questionTitle=problem.get('questionTitle'),
-                        required=problem.get('questionRequired'),
-                        questionTypeId=problem.get('questionTypeId'),
-                        multipleChoice=problem.get('multipleChoice'),
-                        choiceAmount=choiceAmount,
-                        questionOrder=i
-                    )
-                    question.save()
-                    i = i+1
-                    questionId = question.id
-                    if choiceAmount > 0:
-                        j = 1
-                        for option in options:
-                            op = Options(
-                                questionId=questionId,
-                                optionOrder=j,
-                                required=option.get('optionRequired'),
-                                optionContent=option.get('optionContent'),
-                                optionType=option.get('optionType'),
-                                optionScore=option.get('optionScore'),
-                                optionText=option.get('optionText')
-                            )
-                            op.save()
-                            j=j+1
-                return JsonResponse({'status': 200, 'result': "保存成功"})
-            except Exception:
-                return JsonResponse({'status': 300, 'result': "保存问卷失败"})
-        else:
-            return JsonResponse({'status': 400, 'result': "用户未登录"})
+                question.save()
+                i = i+1
+                questionId = question.id
+                if choiceAmount > 0:
+                    j = 1
+                    for option in options:
+                        op = Options(
+                            questionId=questionId,
+                            optionOrder=j,
+                            required=option.get('optionRequired'),
+                            optionContent=option.get('optionContent'),
+                            optionType=option.get('optionType'),
+                            optionScore=option.get('optionScore'),
+                            optionText=option.get('optionText')
+                        )
+                        op.save()
+                        j=j+1
+            return JsonResponse({'status': 200, 'result': "保存成功"})
+        except Exception:
+            return JsonResponse({'status': 300, 'result': "保存问卷失败"})
     else:
         return JsonResponse({'status': 401, 'result': "请求方式错误"})
 
@@ -629,11 +623,10 @@ def getMyQuestionnaire(request):
     if request.method == 'POST':
         req = json.loads(request.body.decode())
         method = req.get('method')
-        global myId
-        k = myId
-        if request.session.get('id',default=myId):
-            authorId = request.session.get('id',myId)
-            myId = k
+        authorId = req.get('authorId')
+        print("authorId")
+        print(authorId)
+        if True:
             res = {}
             try:
                 if method == 1:
@@ -727,13 +720,10 @@ def getQuestionnaireDetails(request):
 # 问卷编辑（发布前）
 def editQuestionnaire(request):
     if request.method == 'POST':
-        global myId
-        k = myId
-        if request.session.get('id',default=myId):
-            myId = k
+
+        if True:
             try:
                 information = json.loads(request.body.decode())
-                print(1)
                 oldQuestionnaireId = information.get('questionnaireId')
                 print(oldQuestionnaireId)
                 oldQuestions = Questions.objects.filter(questionnaireId=oldQuestionnaireId)
@@ -791,12 +781,9 @@ def editQuestionnaire(request):
 # 问卷修改（发布后）
 def modifyQuestionnaire(request):
     if request.method == 'POST':
-        global myId
-        k = myId
-        if request.session.get('id',default=myId):
-            myId = k
+        information = json.loads(request.body.decode())
+        if information.get('authorId'):
             try:
-                information = json.loads(request.body.decode())
                 questionnaireId = information.get('questionnaireId')
                 questionnaire = QuestionnaireInformation.objects.get(id=questionnaireId)
                 questionnaire.questionnaireTitle=information.get('questionnaireTitle')
@@ -823,32 +810,28 @@ def modifyQuestionnaire(request):
     else:
         return JsonResponse({'status': 401, 'result': "请求方式错误"})
 
-# 测试session
-def testSession(request):
-    global myId
-    myId = request
 
-def returnSession(request):
-    return JsonResponse({
-        "myid":myId
-    })
+# def returnSession(request):
+#     return JsonResponse({
+#         "myid":myId
+#     })
 
 # 获取问卷id
 
-def getQuestionnaireId(request):
-    if request.method == 'GET':
-        global myId
-        k = myId
-        questionnaireIds = QuestionnaireInformation.objects.filter(authorId=myId)
-        myId = k
-        data = []
-        for questionnaireId in questionnaireIds:
-            data.append({'id':questionnaireId.id})
-        return JsonResponse({
-            "status":200,
-            "data":data,
-            "result":"获取成功"
-        })
+# def getQuestionnaireId(request):
+#     if request.method == 'GET':
+#         global myId
+#         k = myId
+#         questionnaireIds = QuestionnaireInformation.objects.filter(authorId=myId)
+#         myId = k
+#         data = []
+#         for questionnaireId in questionnaireIds:
+#             data.append({'id':questionnaireId.id})
+#         return JsonResponse({
+#             "status":200,
+#             "data":data,
+#             "result":"获取成功"
+#         })
 
 # 彻底删除问卷
 def deleteCompletelyQuestionnaire(request):
