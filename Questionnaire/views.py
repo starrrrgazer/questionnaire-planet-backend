@@ -576,7 +576,7 @@ def saveQuestionnaire(request):
                             j=j+1
                 return JsonResponse({'status': 200, 'result': "保存成功"})
             except Exception:
-                return JsonResponse({'status': 400, 'result': "保存问卷失败"})
+                return JsonResponse({'status': 300, 'result': "保存问卷失败"})
         else:
             return JsonResponse({'status': 400, 'result': "用户未登录"})
     else:
@@ -591,7 +591,7 @@ def releaseQuestionnaire(request):
         try:
             questionnaire = QuestionnaireInformation.objects.get(id=questionnaireId)
         except Exception:
-            return JsonResponse({'status': 400, 'result': "没有找到问卷"})
+            return JsonResponse({'status': 300, 'result': "没有找到问卷"})
         else:
             if questionnaire.recoveryAmount >= questionnaire.maxRecovery:
                 questionnaire.currentState = False
@@ -662,9 +662,9 @@ def getMyQuestionnaire(request):
                     res['result'] = "获取成功"
                     return JsonResponse(res)
                 else:
-                    return JsonResponse({'status': 200, 'result': "用户没有创建问卷记录"})
+                    return JsonResponse({'status': 300, 'result': "用户没有创建问卷记录"})
             except Exception:
-                return JsonResponse({'status': 400, 'result': "获取信息出错"})
+                return JsonResponse({'status': 301, 'result': "获取信息出错"})
         else:
             return JsonResponse({'status': 400, 'result': "用户未登录"})
     else:
@@ -784,7 +784,7 @@ def editQuestionnaire(request):
             except Exception:
                 return JsonResponse({'status': 400, 'result': "保存问卷失败"})
         else:
-            return JsonResponse({'status': 400, 'result': "用户未登录"})
+            return JsonResponse({'status': 401, 'result': "用户未登录"})
     else:
         return JsonResponse({'status': 401, 'result': "请求方式错误"})
 
@@ -817,7 +817,7 @@ def modifyQuestionnaire(request):
                         myOption.save()
                 return JsonResponse({'status': 200, 'result': "修改成功"})
             except Exception:
-                return JsonResponse({'status': 400, 'result': "修改失败"})
+                return JsonResponse({'status': 300, 'result': "修改失败"})
         else:
             return JsonResponse({'status': 400, 'result': "用户未登录"})
     else:
