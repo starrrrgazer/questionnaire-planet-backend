@@ -32,10 +32,10 @@ def getAnswerData(request):
             if question.questionTypeId == 1  or question.questionTypeId == 6:
                 myQuestion.append(
                     {'num': i, 'id': question.id,'type':1, 'answernum': 0, "question": question.questionTitle, 'name': 'A',
-                     'Num': 0})
+                     'Num': 0,'option':Options.objects.get(questionId=question.id,optionOrder=1).optionContent})
                 k = 'B'
                 for index in range(2, question.choiceAmount + 1):
-                    myQuestion.append({'name': k, 'Num': 0})
+                    myQuestion.append({'name': k, 'Num': 0,'option':Options.objects.get(questionId=question.id,optionOrder=index).optionContent})
                     m = ord(k)
                     m += 1
                     k = chr(m)
@@ -57,10 +57,10 @@ def getAnswerData(request):
                 myQuestion.append(
                     {'num': i, 'id': question.id, 'type': 1, 'answernum': 0, "question": question.questionTitle,
                      'name': 'A',
-                     'Num': 0})
+                     'Num': 0,'option':Options.objects.get(questionId=question.id,optionOrder=1).optionContent})
                 k = 'B'
                 for index in range(2, question.choiceAmount + 1):
-                    myQuestion.append({'name': k, 'Num': 0})
+                    myQuestion.append({'name': k, 'Num': 0,'option':Options.objects.get(questionId=question.id,optionOrder=index).optionContent})
                     m = ord(k)
                     m += 1
                     k = chr(m)
