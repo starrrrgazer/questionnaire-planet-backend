@@ -537,7 +537,8 @@ def saveQuestionnaire(request):
                 questionnaireTitle=information.get('questionnaireTitle'),
                 questionnaireInformation=information.get('questionnaireInformation'),
                 maxRecovery=information.get('maxRecovery'),
-                questionAmount=questionAmount
+                questionAmount=questionAmount,
+                currentState=False
             )
             questionnaire.save()
             questionnaireId = questionnaire.id
