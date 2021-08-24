@@ -19,6 +19,6 @@ urlpatterns = [
     path("sortBySetUpTime", views.sortBySetUpTime),
     path("submitQuestionnaire", views.submitQuestionnaire),
     # path("getQuestionnaireId",views.getQuestionnaireId),
-    path("returnSession",views.returnSession),
+    # path("returnSession",views.returnSession),
     path("deleteCompletelyQuestionnaire",views.deleteCompletelyQuestionnaire)
 ]
