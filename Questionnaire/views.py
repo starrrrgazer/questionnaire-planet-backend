@@ -416,6 +416,32 @@ def sortBySetUpTime(request):
             "data":myData
         })
 
+# 时间倒序
+def sortBySetUpTimeDesc(request):
+    if request.method == "GET":
+        Questionnaires = QuestionnaireInformation.objects.all().order_by('setUpTime')
+        myData = []
+        # Questionnaires = QuestionnaireInformation.objects.all().order_by('-recoveryAmount')
+        for questionnaire in Questionnaires:
+            myData.append({"id":questionnaire.id,
+                           "author":user.objects.get(id = questionnaire.authorId).id,
+                           "title":questionnaire.questionnaireTitle,
+                           "content":questionnaire.questionnaireInformation,
+                           "setUpTime": questionnaire.setUpTime,
+                           "latestAlterTime":questionnaire.latestAlterTime,
+                           "startTime":questionnaire.startTime,
+                           "endTime":questionnaire.endTime,
+                           "deadline":questionnaire.lastEndTime,
+                           "maxRecovery":questionnaire.maxRecovery,
+                           "currentState":questionnaire.currentState,
+                           "questionAmount":questionnaire.questionAmount,
+                           "answerAmount":questionnaire.recoveryAmount})
+
+        return JsonResponse({
+            "status":200,
+            "result":"排序成功",
+            "data":myData
+        })
 
 # 提交问卷
 def submitQuestionnaire(request):
@@ -451,10 +477,11 @@ def submitQuestionnaire(request):
                     "status":400,
                     "result":"questionTypeId找不到"
                 })
-            newAnswerQuestion.answerOrder = index
-            newAnswerQuestion.save()
+            newAnswerQuestion.answerOrder = index + 1
+
             if newAnswerQuestion.questionTypeId == 2:
                 newAnswerQuestion.answerText = newAnswerQuestions[index]['answer']
+            newAnswerQuestion.save()
 
             if newAnswerQuestion.questionTypeId == 1 or newAnswerQuestion.questionTypeId == 6 :
                 newAnswerOption = AnswerOptions()
