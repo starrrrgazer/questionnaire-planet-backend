@@ -32,6 +32,11 @@ class QuestionnaireInformation(models.Model):
     recoveryAmount = models.IntegerField(default=0)
 #     是否已删除
     deleted = models.BooleanField(default=False)
+#     总分
+    totalScore = models.IntegerField(null=True)
+    # 问卷种类
+    questionnaireType = models.IntegerField(default=1)
+
 #     题目是否乱序
 
 # 问卷中的题目
@@ -50,6 +55,14 @@ class Questions(models.Model):
     choiceAmount = models.IntegerField(null=True)
     # 所属问卷中的顺序
     questionOrder = models.IntegerField(default=1)
+#   本题分数
+    score = models.IntegerField(null=True)
+#    本题答案
+    key = models.CharField(null=True,max_length=255)
+    # 最大名额
+    maxQuota = models.IntegerField(null=True)
+    # 当前剩余名额
+    currentQuota = models.IntegerField(null=True)
 #     选项是否乱序
 
 
@@ -89,6 +102,8 @@ class AnswerQuestionnaire(models.Model):
     answerId = models.IntegerField(null=True,unique=True)
     # 提交时间
     commitTime = models.DateTimeField(auto_now_add=True)
+#     问卷得分
+    myScore = models.IntegerField(null=True)
 
 
 # 回收问卷的题目信息
@@ -105,6 +120,8 @@ class AnswerQuestions(models.Model):
     questionTypeId = models.IntegerField(unique=False,default=1)
     # 填写的内容(填空题)
     answerText = models.TextField(null=True)
+#     本题得分(考试问卷)
+    thisScore = models.IntegerField(null=True)
 
 
 # 回收题目的选项信息

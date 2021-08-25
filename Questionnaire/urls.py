@@ -21,5 +21,6 @@ urlpatterns = [
     # path("getQuestionnaireId",views.getQuestionnaireId),
     # path("returnSession",views.returnSession),
     path("deleteCompletelyQuestionnaire",views.deleteCompletelyQuestionnaire),
-    path("sortBySetUpTimeDesc",views.sortBySetUpTimeDesc)
+    path("sortBySetUpTimeDesc",views.sortBySetUpTimeDesc),
+    path("markQuestionnaire",views.markQuestionnaire),
 ]

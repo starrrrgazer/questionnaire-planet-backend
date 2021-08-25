@@ -7,8 +7,6 @@ from django.http import JsonResponse, HttpResponse
 from user.views import *
 
 from django.shortcuts import render
-myId = 0
-
 # Create your views here.
 
 
@@ -213,6 +211,7 @@ def getAnswer(request):
             params.append({'id':cnt})
             cnt += 1
             i = 1
+
             for answerQuestionnaire in answerQuestionnaires:
                 if question.questionTypeId == 1  or question.questionTypeId == 6:
                     AnswerQuestion = AnswerQuestions.objects.get(answerQuestionId=question.id,answerQuestionnaireId=answerQuestionnaire.id)
@@ -454,29 +453,30 @@ def submitQuestionnaire(request):
         answerQuestionnaire.questionnaireId = params.get("questionnaireId")
         Questionnaire = QuestionnaireInformation.objects.get(id = params.get("questionnaireId"))
         Questionnaire.recoveryAmount += 1;
-        Questionnaire.save()
+
+
         answerQuestionnaire.commitTime = datetime.datetime.now()
+
+        if Questionnaire.questionnaireType == 2:
+            answerQuestionnaire.answerId = params.get("examinee")
+            # 防止重复答卷
+            if len(AnswerQuestionnaire.objects.filter(answerId=answerQuestionnaire.answerId,
+                                                      questionnaireId=params.get("questionnaireId"))) >=1:
+                return JsonResponse({
+                    "status":302,
+                    "result":"请勿重复答卷"
+                })
+            # 选择题得分
+            choiceQuestionScore = 0
+            myScore = 0
+        Questionnaire.save()
         answerQuestionnaire.save()
-
-
         for index in range(0,questionAmount):
             newAnswerQuestion = AnswerQuestions()
             newAnswerQuestion.answerQuestionnaireId = answerQuestionnaire.id
-            try:
-                newAnswerQuestion.answerQuestionId = Questions.objects.get(questionnaireId=answerQuestionnaire.questionnaireId,
+            newAnswerQuestion.answerQuestionId = Questions.objects.get(questionnaireId=answerQuestionnaire.questionnaireId,
                                                                        questionOrder=index+1).id
-            except Exception:
-                return JsonResponse({
-                    "status":400,
-                    "result":"newAnswerQuestion.answerQuestionId找不到"
-                })
-            try:
-                newAnswerQuestion.questionTypeId = Questions.objects.get(id = newAnswerQuestion.answerQuestionId).questionTypeId
-            except Exception:
-                return JsonResponse({
-                    "status":400,
-                    "result":"questionTypeId找不到"
-                })
+            newAnswerQuestion.questionTypeId = Questions.objects.get(id = newAnswerQuestion.answerQuestionId).questionTypeId
             newAnswerQuestion.answerOrder = index + 1
 
             if newAnswerQuestion.questionTypeId == 2:
@@ -491,6 +491,16 @@ def submitQuestionnaire(request):
                 newAnswerOption.answerQuestionId = newAnswerQuestion.id
                 newAnswerOption.answerOptionId = Options.objects.get(questionId= newAnswerQuestion.answerQuestionId,
                                                                      optionOrder= newAnswerOption.answerOptionOrder).id
+                # 考试问卷 选择题评分
+                if Questionnaire.questionnaireType == 2:
+                    question = Questions.objects.get(id = newAnswerQuestion.answerQuestionId)
+                    if newAnswerQuestions[index]['answer'] == question.key:
+                        myScore += question.score
+                        newAnswerQuestion.thisScore = question.score
+                    else:
+                        newAnswerQuestion.thisScore = 0
+                    choiceQuestionScore += question.score
+                    newAnswerQuestion.save()
                 newAnswerOption.save()
             elif newAnswerQuestion.questionTypeId == 5 :
                 answer = newAnswerQuestions[index]['answer']
@@ -503,6 +513,19 @@ def submitQuestionnaire(request):
                     newAnswerOption.answerQuestionId = newAnswerQuestion.id
                     newAnswerOption.answerOptionId = Options.objects.get(questionId=newAnswerQuestion.answerQuestionId,
                                                                          optionOrder=newAnswerOption.answerOptionOrder).id
+                    # 考试问卷 多选题评分
+                    if Questionnaire.questionnaireType == 2:
+                        question = Questions.objects.get(id=newAnswerQuestion.answerQuestionId)
+                        if newAnswerQuestions[index]['answer'] == question.key:
+                            myScore += question.score
+                            newAnswerQuestion.thisScore = question.score
+                        elif newAnswerQuestions[index]['answer'] in question.key:
+                            myScore += question.score//2
+                            newAnswerQuestion.thisScore = question.score//2
+                        else:
+                            newAnswerQuestion.thisScore = 0
+                        choiceQuestionScore += question.score
+                        newAnswerQuestion.save()
                     newAnswerOption.save()
 
 
@@ -541,8 +564,15 @@ def submitQuestionnaire(request):
                 newAnswerOption.answerOptionId = -1
                 newAnswerOption.save()
 
-
-        return JsonResponse({
+        if Questionnaire.questionnaireType == 2:
+            return JsonResponse({
+                "status" : 200,
+                "result" : "提交问卷成功",
+                "totalChoiceScore":choiceQuestionScore,
+                "myChoiceScore":myScore
+            })
+        else:
+            return JsonResponse({
             "status" : 200,
             "result" : "提交问卷成功"
         })
@@ -551,6 +581,37 @@ def submitQuestionnaire(request):
             'status':400,
             'result':"请求方式错误"
         })
+
+
+# 考试问卷评分
+def markQuestionnaire(request):
+    if request.method == 'POST':
+        totalScore = 0
+        params = json.loads(request.body)
+        studentId = params.get("studentId")
+        questionnaireId = params.get("questionnaireId")
+        scores = params.get("scores")
+        answerQuestionnaire = AnswerQuestionnaire.objects.get(answerId=studentId,questionnaireId=questionnaireId)
+        answerQuestions = AnswerQuestions.objects.filter(answerQuestionnaireId=answerQuestionnaire.id)
+        index = 0
+        for answerQuestion in answerQuestions:
+            question = Questions.objects.get(id=answerQuestion.answerQuestionId)
+            # 选择题分数自动评价
+            if question.questionTypeId == 1 or question.questionTypeId ==5 or question.questionTypeId ==6:
+                totalScore += answerQuestion.thisScore
+            # 其他题分数教师评价
+            else:
+                totalScore += scores[index]['score']
+                answerQuestion.thisScore = scores[index]['score']
+        answerQuestionnaire.myScore = totalScore
+        answerQuestionnaire.save()
+        return JsonResponse({
+            "status":200,
+            "result":"评分成功",
+            "totalScore":totalScore
+        })
+
+
 
 
 # 保存问卷
@@ -875,4 +936,3 @@ def deleteCompletelyQuestionnaire(request):
         return JsonResponse({'status': 200, 'result': "删除成功"})
     else:
         return JsonResponse({'status': 401, 'result': "请求方式错误"})
-
