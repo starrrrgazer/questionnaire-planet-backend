@@ -1,4 +1,5 @@
 import json
+import random
 
 from django.utils import timezone
 
@@ -1041,5 +1042,73 @@ def copyQuestionnaire(request):
                 )
                 newOption.save()
         return JsonResponse({'status': 200, 'result': "复制成功"})
+    else:
+        return JsonResponse({'status': 401, 'result': "请求方式错误"})
+
+# 生成回答界面所需的数据
+def getAnswerQuestionnaireInterface(request):
+    if request.method == 'POST':
+        req = json.loads(request.body.decode())
+        questionnaireId = req.get('questionnaireId')
+        try:
+            questionnaire = QuestionnaireInformation.objects.get(id=questionnaireId)
+        except Exception:
+            return JsonResponse({'status': 400, 'result': "找不到该问卷"})
+        else:
+            questionList = []
+            questions = Questions.objects.filter(questionnaireId=questionnaireId).order_by('questionOrder')
+            for question in questions:
+                questionId = question.id
+                optionList = []
+                options = Options.objects.filter(questionId=questionId).order_by('optionOrder')
+                for option in options:
+                    optionList.append(
+                        {
+                            'optionId': option.id,
+                            'optionOrder': option.optionOrder,
+                            'required': option.required,
+                            'optionContent': option.optionContent,
+                            'optionType': option.optionType,
+                            'optionScore': option.optionScore,
+                            'optionText': option.optionText,
+                            'selectNumber': option.selectNumber,
+                            'maxQuota': option.maxQuota,
+                            'currentQuota': option.currentQuota,
+                            'limitNumber': option.limitNumber
+                        }
+                    )
+                    random.shuffle(optionList)
+                questionList.append(
+                    {
+                        'questionId': question.id,
+                        'questionTitle': question.questionTitle,
+                        'questionTypeId': question.questionTypeId,
+                        'required': question.required,
+                        'multipleChoice': question.multipleChoice,
+                        'choiceAmount': question.choiceAmount,
+                        'questionOrder': question.questionOrder,
+                        'questionInformation': question.questionInformation,
+                        'outOfOrder': question.outOfOrder,
+                        'score': question.score,
+                        'key': question.key,
+                        'optionList': optionList,
+                    }
+                )
+            random.shuffle(questionList)
+            res = {
+                'questionnaireTitle': questionnaire.questionnaireTitle,
+                'questionnaireInformation': questionnaire.questionnaireInformation,
+                'questionAmount': questionnaire.questionAmount,
+                'lastEndTime': questionnaire.lastEndTime,
+                'insertQuestionNumber': questionnaire.insertQuestionNumber,
+                'outOfOrder': questionnaire.outOfOrder,
+                'questionnaireType': questionnaire.questionnaireType,
+                'totalScore': questionnaire.totalScore,
+                'questionList': questionList,
+
+                'status': 200,
+                'result': "获取问卷信息成功"
+            }
+            return JsonResponse(res)
     else:
         return JsonResponse({'status': 401, 'result': "请求方式错误"})

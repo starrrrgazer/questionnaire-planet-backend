@@ -23,4 +23,6 @@ urlpatterns = [
     path("deleteCompletelyQuestionnaire",views.deleteCompletelyQuestionnaire),
     path("sortBySetUpTimeDesc",views.sortBySetUpTimeDesc),
     path("markQuestionnaire",views.markQuestionnaire),
+    path("getAnswerQuestionnaireInterface",views.getAnswerQuestionnaireInterface),
+    path("copyQuestionnaire",views.copyQuestionnaire),
 ]
