@@ -59,10 +59,7 @@ class Questions(models.Model):
     score = models.IntegerField(null=True)
 #    本题答案
     key = models.CharField(null=True,max_length=255)
-    # 最大名额
-    maxQuota = models.IntegerField(null=True)
-    # 当前剩余名额
-    currentQuota = models.IntegerField(null=True)
+
 #     选项是否乱序
 
 
@@ -92,6 +89,10 @@ class Options(models.Model):
     optionScore = models.IntegerField(default=-1)
     # 评分是否有评价
     optionText = models.BooleanField(default=False)
+    # 最大名额
+    maxQuota = models.IntegerField(null=True)
+    # 当前剩余名额
+    currentQuota = models.IntegerField(null=True)
 
 
 # 回收问卷信息
