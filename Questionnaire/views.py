@@ -611,10 +611,7 @@ def markQuestionnaire(request):
             "totalScore":totalScore
         })
 
-
-
-
-# 保存问卷
+# 保存问卷（创建问卷）
 def saveQuestionnaire(request):
     if request.method == 'POST':
         information = json.loads(request.body.decode())
@@ -633,10 +630,12 @@ def saveQuestionnaire(request):
                 maxRecovery=information.get('maxRecovery'),
                 questionAmount=questionAmount,
                 currentState=False,
-                questionnaireType=questionnaireType
+                questionnaireType=questionnaireType,
+                insertQuestionNumber=information.get('insertQuestionNumber'),
+                outOfOrder=information.get('outOfOrder')
             )
-            if questionnaireType == 2 :
-                questionnaire.totalScore = information.get("score")
+            if questionnaireType == 2:
+                questionnaire.totalScore = information.get("totalScore")
             questionnaire.save()
             questionnaireId = questionnaire.id
             i = 1
@@ -650,9 +649,11 @@ def saveQuestionnaire(request):
                     questionTypeId=problem.get('questionTypeId'),
                     multipleChoice=problem.get('multipleChoice'),
                     choiceAmount=choiceAmount,
-                    questionOrder=i
+                    questionOrder=i,
+                    questionInformation=problem.get('questionInformation'),
+                    outOfOrder=problem.get('outOfOrder'),
                 )
-                if questionnaireType == 2 :
+                if questionnaireType == 2:
                     question.key = problem.get("key")
                     question.score = problem.get("score")
                 question.save()
@@ -670,6 +671,10 @@ def saveQuestionnaire(request):
                             optionScore=option.get('optionScore'),
                             optionText=option.get('optionText')
                         )
+                        if questionnaireType == 3:
+                            op.maxQuota = option.get('maxQuota')
+                            op.currentQuota = option.get('currentQuota')
+                            op.limitNumber = option.get('limitNumber')
                         op.save()
                         j=j+1
             return JsonResponse({'status': 200, 'result': "保存成功"})
@@ -726,8 +731,6 @@ def getMyQuestionnaire(request):
         req = json.loads(request.body.decode())
         method = req.get('method')
         authorId = req.get('authorId')
-        print("authorId")
-        print(authorId)
         if True:
             res = {}
             try:
@@ -736,7 +739,7 @@ def getMyQuestionnaire(request):
                 elif method == -1:
                     questionnaires = QuestionnaireInformation.objects.filter(authorId=authorId).order_by('-setUpTime')
                 else:
-                    return JsonResponse({'status': 400, 'result': "排序方法出错"})
+                    return JsonResponse({'status': 400, 'result': "排序方法出错,应该为-1或1"})
                 if questionnaires.exists():
                     questionnaireList = []
                     for questionnaire in questionnaires:

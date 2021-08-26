@@ -25,7 +25,7 @@ class QuestionnaireInformation(models.Model):
     # 回收问卷上限
     maxRecovery = models.IntegerField(default=9999)
     # 当前问卷状态（是否可回收）
-    currentState = models.BooleanField(default=True)
+    currentState = models.BooleanField(default=False)
     # 题目数量
     questionAmount = models.IntegerField(default=0)
     # 回收问卷数量
@@ -48,7 +48,7 @@ class Questions(models.Model):
     # 题干
     questionTitle = models.CharField(max_length=512)
     # 题目描述
-    questionInformation = models.CharField(max_length=512)
+    questionInformation = models.CharField(max_length=512,null=True)
     # 题目类型id
     questionTypeId = models.IntegerField(null=False,unique=False)
     # 是否必填
@@ -97,7 +97,10 @@ class Options(models.Model):
     maxQuota = models.IntegerField(null=True)
     # 当前剩余名额
     currentQuota = models.IntegerField(null=True)
-
+    # 是否限额
+    limitNumber = models.BooleanField(default=False)
+    # 已选该选项的人数
+    selectNumber = models.IntegerField(default=0)
 
 # 回收问卷信息
 class AnswerQuestionnaire(models.Model):
