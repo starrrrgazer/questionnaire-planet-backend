@@ -13,16 +13,18 @@ from django.shortcuts import render
 
 from user.models import user
 
+
 # 获取问卷结果的数据
 def getAnswerData(request):
     if request.method == 'POST':
         questionnaireId = json.loads(request.body).get("questionnaireId");
         params = [];
-        questionnaire = QuestionnaireInformation.objects.get(id = questionnaireId);
-        answerQuestionnaires = AnswerQuestionnaire.objects.filter(questionnaireId = questionnaireId);
+        questionnaire = QuestionnaireInformation.objects.get(id=questionnaireId);
+        answerQuestionnaires = AnswerQuestionnaire.objects.filter(questionnaireId=questionnaireId);
         # 所有该问卷中的题目
-        questions = Questions.objects.filter(questionnaireId = questionnaireId)
-        i = 1;i1 = 1;
+        questions = Questions.objects.filter(questionnaireId=questionnaireId)
+        i = 1;
+        i1 = 1;
         # 遍历题目
         for question in questions:
             myQuestion = []
@@ -30,25 +32,27 @@ def getAnswerData(request):
             # 选择题
             if question.questionTypeId == 1 or question.questionTypeId == 6:
                 myQuestion.append(
-                    {'num': i, 'id': question.id,'type':1, 'answernum': 0, "question": question.questionTitle,
-                     'name':'A:'+Options.objects.get(questionId=question.id,optionOrder=1).optionContent,
+                    {'num': i, 'id': question.id, 'type': 1, 'answernum': 0, "question": question.questionTitle,
+                     'name': 'A:' + Options.objects.get(questionId=question.id, optionOrder=1).optionContent,
                      'Num': 0})
                 k = 'B'
                 for index in range(2, question.choiceAmount + 1):
-                    myQuestion.append({ 'name':k+':'+Options.objects.get(questionId=question.id,optionOrder=index).optionContent, 'Num': 0})
+                    myQuestion.append(
+                        {'name': k + ':' + Options.objects.get(questionId=question.id, optionOrder=index).optionContent,
+                         'Num': 0})
                     m = ord(k)
                     m += 1
                     k = chr(m)
                 i += 1
                 for answerQuestionnaire in answerQuestionnaires:
                     answerQuestion = AnswerQuestions.objects.get(answerQuestionId=question.id,
-                                                                   answerQuestionnaireId=answerQuestionnaire.id)
+                                                                 answerQuestionnaireId=answerQuestionnaire.id)
                     answerQuestionId = answerQuestion.id
                     AnswerOption = AnswerOptions.objects.get(answerQuestionId=answerQuestionId)
                     optionContent = AnswerOption.optionContent
                     if '1' in optionContent: myQuestion[0]['Num'] += 1
-                    for index in range(2,question.choiceAmount+1):
-                        if str(index) in optionContent: myQuestion[index-1]['Num'] += 1
+                    for index in range(2, question.choiceAmount + 1):
+                        if str(index) in optionContent: myQuestion[index - 1]['Num'] += 1
                     myQuestion[0]['answernum'] += 1
                 # params.append({'answernum':k});#每道题填写人数
                 params.append(myQuestion)
@@ -56,11 +60,13 @@ def getAnswerData(request):
             elif question.questionTypeId == 5:
                 myQuestion.append(
                     {'num': i, 'id': question.id, 'type': 1, 'answernum': 0, "question": question.questionTitle,
-                     'name':'A:'+Options.objects.get(questionId=question.id,optionOrder=1).optionContent,
+                     'name': 'A:' + Options.objects.get(questionId=question.id, optionOrder=1).optionContent,
                      'Num': 0})
                 k = 'B'
                 for index in range(2, question.choiceAmount + 1):
-                    myQuestion.append({'name':k+':'+Options.objects.get(questionId=question.id,optionOrder=index).optionContent, 'Num': 0})
+                    myQuestion.append(
+                        {'name': k + ':' + Options.objects.get(questionId=question.id, optionOrder=index).optionContent,
+                         'Num': 0})
                     m = ord(k)
                     m += 1
                     k = chr(m)
@@ -85,8 +91,9 @@ def getAnswerData(request):
                                                                answerQuestionnaireId=answerQuestionnaires[0].id).id
                 answer1 = AnswerOptions.objects.get(answerQuestionId=answerQuestionId).completionContent
                 myQuestion.append(
-                    {'num': i, 'id': question.id,'type':2, 'answernum': 0, "question": question.questionTitle,'answer':answer1})
-                for index in range(1,questionAmounts):
+                    {'num': i, 'id': question.id, 'type': 2, 'answernum': 0, "question": question.questionTitle,
+                     'answer': answer1})
+                for index in range(1, questionAmounts):
                     answerQuestionnaire = answerQuestionnaires[index]
                     answerQuestionId = AnswerQuestions.objects.get(answerQuestionId=question.id,
                                                                    answerQuestionnaireId=answerQuestionnaire.id).id
@@ -99,8 +106,8 @@ def getAnswerData(request):
                 # 简单评分
             elif question.questionTypeId == 3:
                 myQuestion.append(
-                    {'num': i, 'id': question.id,'type':3, 'answernum': 0,
-                     "question": question.questionTitle,'name': '一星','Num':0,'averageScore':0})
+                    {'num': i, 'id': question.id, 'type': 3, 'answernum': 0,
+                     "question": question.questionTitle, 'name': '一星', 'Num': 0, 'averageScore': 0})
                 myQuestion.append({'name': '二星', 'Num': 0})
                 myQuestion.append({'name': '三星', 'Num': 0})
                 myQuestion.append({'name': '四星', 'Num': 0})
@@ -109,8 +116,9 @@ def getAnswerData(request):
                     answerQuestionId = AnswerQuestions.objects.get(answerQuestionId=question.id,
                                                                    answerQuestionnaireId=answerQuestionnaire.id).id
                     # 取得评分
-                    optionScore1 = int(AnswerOptions.objects.get(answerQuestionId=answerQuestionId,answerOptionOrder = 1).optionScore)
-                    myQuestion[optionScore1-1]['Num'] += 1
+                    optionScore1 = int(
+                        AnswerOptions.objects.get(answerQuestionId=answerQuestionId, answerOptionOrder=1).optionScore)
+                    myQuestion[optionScore1 - 1]['Num'] += 1
                     myQuestion[0]['averageScore'] += optionScore1
                     myQuestion[0]['answernum'] += 1
                 myQuestion[0]['averageScore'] /= myQuestion[0]['answernum']
@@ -119,12 +127,12 @@ def getAnswerData(request):
             #     高级评分
             elif question.questionTypeId == 4:
                 myQuestion.append(
-                    {'num': i, 'id': question.id, 'type':4,'answernum': 0, 'question': question.questionTitle,
-                        'averageScore':0,'name': '一星', 'Num': 0,'comment':[]})
-                myQuestion.append({'name': '二星', 'Num': 0,'comment':[]})
-                myQuestion.append({'name': '三星', 'Num': 0,'comment':[]})
-                myQuestion.append({'name': '四星', 'Num': 0,'comment':[]})
-                myQuestion.append({'name': '五星', 'Num': 0,'comment':[]})
+                    {'num': i, 'id': question.id, 'type': 4, 'answernum': 0, 'question': question.questionTitle,
+                     'averageScore': 0, 'name': '一星', 'Num': 0, 'comment': []})
+                myQuestion.append({'name': '二星', 'Num': 0, 'comment': []})
+                myQuestion.append({'name': '三星', 'Num': 0, 'comment': []})
+                myQuestion.append({'name': '四星', 'Num': 0, 'comment': []})
+                myQuestion.append({'name': '五星', 'Num': 0, 'comment': []})
 
                 for answerQuestionnaire in answerQuestionnaires:
                     answerQuestionId = AnswerQuestions.objects.get(answerQuestionId=question.id,
@@ -132,27 +140,24 @@ def getAnswerData(request):
 
                     # 取得评分
                     optionScore1 = int(AnswerOptions.objects.get(answerQuestionId=answerQuestionId,
-                                                             answerOptionOrder=1).optionScore)
-        #             取得评价
+                                                                 answerOptionOrder=1).optionScore)
+                    #             取得评价
                     optionScoreText1 = AnswerOptions.objects.get(answerQuestionId=answerQuestionId,
-                                                             answerOptionOrder=1).optionScoreText
+                                                                 answerOptionOrder=1).optionScoreText
 
-                    myQuestion[optionScore1-1]['Num'] += 1
-                    myQuestion[optionScore1-1]['comment'].append({'cont':optionScoreText1})
+                    myQuestion[optionScore1 - 1]['Num'] += 1
+                    myQuestion[optionScore1 - 1]['comment'].append({'cont': optionScoreText1})
                     myQuestion[0]['averageScore'] += optionScore1
                     myQuestion[0]['answernum'] += 1
-
-
 
                 myQuestion[0]['averageScore'] /= myQuestion[0]['answernum']
                 params.append(myQuestion)
 
-
         return JsonResponse({
-            'status':200,
-            'data':params,
-            'answerAmount':questionnaire.recoveryAmount,
-            'result':"获取问卷结果成功"
+            'status': 200,
+            'data': params,
+            'answerAmount': questionnaire.recoveryAmount,
+            'result': "获取问卷结果成功"
         })
     else:
         return JsonResponse({
@@ -206,19 +211,21 @@ def getAnswer(request):
         questionnaireId = json.loads(request.body).get("questionnaireId");
         params = [];
         questions = Questions.objects.filter(questionnaireId=questionnaireId)
-        answerQuestionnaires = AnswerQuestionnaire.objects.filter(questionnaireId = questionnaireId)
-        cnt = 1;count=0;
-        for question in questions :
-            params.append({'id':cnt})
+        answerQuestionnaires = AnswerQuestionnaire.objects.filter(questionnaireId=questionnaireId)
+        cnt = 1;
+        count = 0;
+        for question in questions:
+            params.append({'id': cnt})
             cnt += 1
             i = 1
 
             for answerQuestionnaire in answerQuestionnaires:
-                if question.questionTypeId == 1  or question.questionTypeId == 6:
-                    AnswerQuestion = AnswerQuestions.objects.get(answerQuestionId=question.id,answerQuestionnaireId=answerQuestionnaire.id)
+                if question.questionTypeId == 1 or question.questionTypeId == 6:
+                    AnswerQuestion = AnswerQuestions.objects.get(answerQuestionId=question.id,
+                                                                 answerQuestionnaireId=answerQuestionnaire.id)
                     AnswerOption = AnswerOptions.objects.get(answerQuestionId=AnswerQuestion.id)
-                    params[count]['answer'+str(i)] =AnswerOption.optionContent
-                    i+=1
+                    params[count]['answer' + str(i)] = AnswerOption.optionContent
+                    i += 1
                 if question.questionTypeId == 5:
                     AnswerQuestion = AnswerQuestions.objects.get(answerQuestionId=question.id,
                                                                  answerQuestionnaireId=answerQuestionnaire.id)
@@ -229,14 +236,15 @@ def getAnswer(request):
                 if question.questionTypeId == 2:
                     AnswerQuestion = AnswerQuestions.objects.get(answerQuestionId=question.id,
                                                                  answerQuestionnaireId=answerQuestionnaire.id)
-                    params[count]['answer' + str(i)] = AnswerQuestion.answerText;i+=1
+                    params[count]['answer' + str(i)] = AnswerQuestion.answerText;
+                    i += 1
                 if question.questionTypeId == 3:
                     AnswerQuestion = AnswerQuestions.objects.get(answerQuestionId=question.id,
                                                                  answerQuestionnaireId=answerQuestionnaire.id)
                     AnswerOption = AnswerOptions.objects.get(answerQuestionId=AnswerQuestion.id)
                     params[count]['answer' + str(i)] = AnswerOption.optionScore
                     i += 1
-                if question.questionTypeId == 4 :
+                if question.questionTypeId == 4:
                     AnswerQuestion = AnswerQuestions.objects.get(answerQuestionId=question.id,
                                                                  answerQuestionnaireId=answerQuestionnaire.id)
                     AnswerOption = AnswerOptions.objects.get(answerQuestionId=AnswerQuestion.id)
@@ -246,10 +254,11 @@ def getAnswer(request):
 
             count += 1
         return JsonResponse({
-            "status":200,
-            "data":params,
-            "result":"获取答题结果成功"
+            "status": 200,
+            "data": params,
+            "result": "获取答题结果成功"
         })
+
 
 # 筛选功能
 def getQuestionAnswer(request):
@@ -259,25 +268,25 @@ def getQuestionAnswer(request):
         answerId = params.get("answerId")
         data = [];
 
-        question = AnswerQuestions.objects.get(answerQuestionnaireId = questionnaireId,answerQuestionId = answerId)
+        question = AnswerQuestions.objects.get(answerQuestionnaireId=questionnaireId, answerQuestionId=answerId)
         answerQuestionnaires = AnswerQuestionnaire.objects.filter(questionnaireId=questionnaireId)
 
         # 遍历每个答卷
         for answerQuestionnaire in answerQuestionnaires:
             answers = [];
-            answers.append({"answerId":answerQuestionnaire.answerId})
+            answers.append({"answerId": answerQuestionnaire.answerId})
             myOption = AnswerOptions.objects.get(answerQuestionId=question.id)
             if myOption.optionType == 1:
-                answers.append({"answer":myOption.optionContent} )
+                answers.append({"answer": myOption.optionContent})
             if myOption.optionType == 2:
-                answers.append({"answer":myOption.completionContent})
+                answers.append({"answer": myOption.completionContent})
             if myOption.optionType == 3:
-                answers.append({"answer":myOption.optionScore})
+                answers.append({"answer": myOption.optionScore})
             data.append(answers)
         return JsonResponse({
             "status": 200,
             "result": "查询成功",
-            "data":data
+            "data": data
         })
     else:
         return JsonResponse({
@@ -300,8 +309,8 @@ def deleteQuestionnaire(request):
         questionnaire.deleted = True;
         questionnaire.save();
         return JsonResponse({
-            "status":200,
-            "result":"删除成功"
+            "status": 200,
+            "result": "删除成功"
         })
     else:
         return JsonResponse({
@@ -324,8 +333,8 @@ def backQuestionnaire(request):
         questionnaire.deleted = False;
         questionnaire.save();
         return JsonResponse({
-            "status":200,
-            "result":"还原成功"
+            "status": 200,
+            "result": "还原成功"
         })
     else:
         return JsonResponse({
@@ -341,25 +350,26 @@ def sortByRecoveryAmount(request):
         myData = []
         # Questionnaires = QuestionnaireInformation.objects.all().order_by('-recoveryAmount')
         for questionnaire in Questionnaires:
-            myData.append({"id":questionnaire.id,
-                           "author":user.objects.get(id = questionnaire.authorId).id,
-                           "title":questionnaire.questionnaireTitle,
-                           "content":questionnaire.questionnaireInformation,
+            myData.append({"id": questionnaire.id,
+                           "author": user.objects.get(id=questionnaire.authorId).id,
+                           "title": questionnaire.questionnaireTitle,
+                           "content": questionnaire.questionnaireInformation,
                            "setUpTime": questionnaire.setUpTime,
-                           "latestAlterTime":questionnaire.latestAlterTime,
-                           "startTime":questionnaire.startTime,
-                           "endTime":questionnaire.endTime,
-                           "deadline":questionnaire.lastEndTime,
-                           "maxRecovery":questionnaire.maxRecovery,
-                           "currentState":questionnaire.currentState,
-                           "questionAmount":questionnaire.questionAmount,
-                           "answerAmount":questionnaire.recoveryAmount})
+                           "latestAlterTime": questionnaire.latestAlterTime,
+                           "startTime": questionnaire.startTime,
+                           "endTime": questionnaire.endTime,
+                           "deadline": questionnaire.lastEndTime,
+                           "maxRecovery": questionnaire.maxRecovery,
+                           "currentState": questionnaire.currentState,
+                           "questionAmount": questionnaire.questionAmount,
+                           "answerAmount": questionnaire.recoveryAmount})
 
         return JsonResponse({
-            "status":200,
-            "result":"排序成功",
-            "data":myData
+            "status": 200,
+            "result": "排序成功",
+            "data": myData
         })
+
 
 # 按发布时间排序
 def sortByStartTime(request):
@@ -368,25 +378,26 @@ def sortByStartTime(request):
         myData = []
         # Questionnaires = QuestionnaireInformation.objects.all().order_by('-recoveryAmount')
         for questionnaire in Questionnaires:
-            myData.append({"id":questionnaire.id,
-                           "author":user.objects.get(id = questionnaire.authorId).id,
-                           "title":questionnaire.questionnaireTitle,
-                           "content":questionnaire.questionnaireInformation,
+            myData.append({"id": questionnaire.id,
+                           "author": user.objects.get(id=questionnaire.authorId).id,
+                           "title": questionnaire.questionnaireTitle,
+                           "content": questionnaire.questionnaireInformation,
                            "setUpTime": questionnaire.setUpTime,
-                           "latestAlterTime":questionnaire.latestAlterTime,
-                           "startTime":questionnaire.startTime,
-                           "endTime":questionnaire.endTime,
-                           "deadline":questionnaire.lastEndTime,
-                           "maxRecovery":questionnaire.maxRecovery,
-                           "currentState":questionnaire.currentState,
-                           "questionAmount":questionnaire.questionAmount,
-                           "answerAmount":questionnaire.recoveryAmount})
+                           "latestAlterTime": questionnaire.latestAlterTime,
+                           "startTime": questionnaire.startTime,
+                           "endTime": questionnaire.endTime,
+                           "deadline": questionnaire.lastEndTime,
+                           "maxRecovery": questionnaire.maxRecovery,
+                           "currentState": questionnaire.currentState,
+                           "questionAmount": questionnaire.questionAmount,
+                           "answerAmount": questionnaire.recoveryAmount})
 
         return JsonResponse({
-            "status":200,
-            "result":"排序成功",
-            "data":myData
+            "status": 200,
+            "result": "排序成功",
+            "data": myData
         })
+
 
 # 按创建时间排序
 def sortBySetUpTime(request):
@@ -395,25 +406,26 @@ def sortBySetUpTime(request):
         myData = []
         # Questionnaires = QuestionnaireInformation.objects.all().order_by('-recoveryAmount')
         for questionnaire in Questionnaires:
-            myData.append({"id":questionnaire.id,
-                           "author":user.objects.get(id = questionnaire.authorId).id,
-                           "title":questionnaire.questionnaireTitle,
-                           "content":questionnaire.questionnaireInformation,
+            myData.append({"id": questionnaire.id,
+                           "author": user.objects.get(id=questionnaire.authorId).id,
+                           "title": questionnaire.questionnaireTitle,
+                           "content": questionnaire.questionnaireInformation,
                            "setUpTime": questionnaire.setUpTime,
-                           "latestAlterTime":questionnaire.latestAlterTime,
-                           "startTime":questionnaire.startTime,
-                           "endTime":questionnaire.endTime,
-                           "deadline":questionnaire.lastEndTime,
-                           "maxRecovery":questionnaire.maxRecovery,
-                           "currentState":questionnaire.currentState,
-                           "questionAmount":questionnaire.questionAmount,
-                           "answerAmount":questionnaire.recoveryAmount})
+                           "latestAlterTime": questionnaire.latestAlterTime,
+                           "startTime": questionnaire.startTime,
+                           "endTime": questionnaire.endTime,
+                           "deadline": questionnaire.lastEndTime,
+                           "maxRecovery": questionnaire.maxRecovery,
+                           "currentState": questionnaire.currentState,
+                           "questionAmount": questionnaire.questionAmount,
+                           "answerAmount": questionnaire.recoveryAmount})
 
         return JsonResponse({
-            "status":200,
-            "result":"排序成功",
-            "data":myData
+            "status": 200,
+            "result": "排序成功",
+            "data": myData
         })
+
 
 # 时间倒序
 def sortBySetUpTimeDesc(request):
@@ -422,25 +434,26 @@ def sortBySetUpTimeDesc(request):
         myData = []
         # Questionnaires = QuestionnaireInformation.objects.all().order_by('-recoveryAmount')
         for questionnaire in Questionnaires:
-            myData.append({"id":questionnaire.id,
-                           "author":user.objects.get(id = questionnaire.authorId).id,
-                           "title":questionnaire.questionnaireTitle,
-                           "content":questionnaire.questionnaireInformation,
+            myData.append({"id": questionnaire.id,
+                           "author": user.objects.get(id=questionnaire.authorId).id,
+                           "title": questionnaire.questionnaireTitle,
+                           "content": questionnaire.questionnaireInformation,
                            "setUpTime": questionnaire.setUpTime,
-                           "latestAlterTime":questionnaire.latestAlterTime,
-                           "startTime":questionnaire.startTime,
-                           "endTime":questionnaire.endTime,
-                           "deadline":questionnaire.lastEndTime,
-                           "maxRecovery":questionnaire.maxRecovery,
-                           "currentState":questionnaire.currentState,
-                           "questionAmount":questionnaire.questionAmount,
-                           "answerAmount":questionnaire.recoveryAmount})
+                           "latestAlterTime": questionnaire.latestAlterTime,
+                           "startTime": questionnaire.startTime,
+                           "endTime": questionnaire.endTime,
+                           "deadline": questionnaire.lastEndTime,
+                           "maxRecovery": questionnaire.maxRecovery,
+                           "currentState": questionnaire.currentState,
+                           "questionAmount": questionnaire.questionAmount,
+                           "answerAmount": questionnaire.recoveryAmount})
 
         return JsonResponse({
-            "status":200,
-            "result":"排序成功",
-            "data":myData
+            "status": 200,
+            "result": "排序成功",
+            "data": myData
         })
+
 
 # 提交问卷
 def submitQuestionnaire(request):
@@ -451,9 +464,8 @@ def submitQuestionnaire(request):
         questionAmount = len(newAnswerQuestions)
         answerQuestionnaire = AnswerQuestionnaire()
         answerQuestionnaire.questionnaireId = params.get("questionnaireId")
-        Questionnaire = QuestionnaireInformation.objects.get(id = params.get("questionnaireId"))
+        Questionnaire = QuestionnaireInformation.objects.get(id=params.get("questionnaireId"))
         Questionnaire.recoveryAmount += 1;
-
 
         answerQuestionnaire.commitTime = datetime.datetime.now()
 
@@ -461,39 +473,41 @@ def submitQuestionnaire(request):
             answerQuestionnaire.answerId = params.get("examinee")
             # 防止重复答卷
             if len(AnswerQuestionnaire.objects.filter(answerId=answerQuestionnaire.answerId,
-                                                      questionnaireId=params.get("questionnaireId"))) >=1:
+                                                      questionnaireId=params.get("questionnaireId"))) >= 1:
                 return JsonResponse({
-                    "status":302,
-                    "result":"请勿重复答卷"
+                    "status": 302,
+                    "result": "请勿重复答卷"
                 })
             # 选择题得分
             choiceQuestionScore = 0
             myScore = 0
         Questionnaire.save()
         answerQuestionnaire.save()
-        for index in range(0,questionAmount):
+        for index in range(0, questionAmount):
             newAnswerQuestion = AnswerQuestions()
             newAnswerQuestion.answerQuestionnaireId = answerQuestionnaire.id
-            newAnswerQuestion.answerQuestionId = Questions.objects.get(questionnaireId=answerQuestionnaire.questionnaireId,
-                                                                       questionOrder=index+1).id
-            newAnswerQuestion.questionTypeId = Questions.objects.get(id = newAnswerQuestion.answerQuestionId).questionTypeId
+            newAnswerQuestion.answerQuestionId = Questions.objects.get(
+                questionnaireId=answerQuestionnaire.questionnaireId,
+                questionOrder=index + 1).id
+            newAnswerQuestion.questionTypeId = Questions.objects.get(
+                id=newAnswerQuestion.answerQuestionId).questionTypeId
             newAnswerQuestion.answerOrder = index + 1
 
             if newAnswerQuestion.questionTypeId == 2:
                 newAnswerQuestion.answerText = newAnswerQuestions[index]['answer']
             newAnswerQuestion.save()
 
-            if newAnswerQuestion.questionTypeId == 1 or newAnswerQuestion.questionTypeId == 6 :
+            if newAnswerQuestion.questionTypeId == 1 or newAnswerQuestion.questionTypeId == 6:
                 newAnswerOption = AnswerOptions()
                 newAnswerOption.optionType = 1;
                 newAnswerOption.optionContent = newAnswerQuestions[index]['answer']
                 newAnswerOption.answerOptionOrder = newAnswerQuestions[index]['answer']
                 newAnswerOption.answerQuestionId = newAnswerQuestion.id
-                newAnswerOption.answerOptionId = Options.objects.get(questionId= newAnswerQuestion.answerQuestionId,
-                                                                     optionOrder= newAnswerOption.answerOptionOrder).id
+                newAnswerOption.answerOptionId = Options.objects.get(questionId=newAnswerQuestion.answerQuestionId,
+                                                                     optionOrder=newAnswerOption.answerOptionOrder).id
                 # 考试问卷 选择题评分
                 if Questionnaire.questionnaireType == 2:
-                    question = Questions.objects.get(id = newAnswerQuestion.answerQuestionId)
+                    question = Questions.objects.get(id=newAnswerQuestion.answerQuestionId)
                     if newAnswerQuestions[index]['answer'] == question.key:
                         myScore += question.score
                         newAnswerQuestion.thisScore = question.score
@@ -502,10 +516,10 @@ def submitQuestionnaire(request):
                     choiceQuestionScore += question.score
                     newAnswerQuestion.save()
                 newAnswerOption.save()
-            elif newAnswerQuestion.questionTypeId == 5 :
+            elif newAnswerQuestion.questionTypeId == 5:
                 answer = newAnswerQuestions[index]['answer']
                 answerAmount = len(answer)
-                for i in range(0,answerAmount):
+                for i in range(0, answerAmount):
                     newAnswerOption = AnswerOptions()
                     newAnswerOption.optionType = 1;
                     newAnswerOption.optionContent = newAnswerQuestions[index]['answer']
@@ -520,8 +534,8 @@ def submitQuestionnaire(request):
                             myScore += question.score
                             newAnswerQuestion.thisScore = question.score
                         elif newAnswerQuestions[index]['answer'] in question.key:
-                            myScore += question.score//2
-                            newAnswerQuestion.thisScore = question.score//2
+                            myScore += question.score // 2
+                            newAnswerQuestion.thisScore = question.score // 2
                         else:
                             newAnswerQuestion.thisScore = 0
                         choiceQuestionScore += question.score
@@ -566,20 +580,20 @@ def submitQuestionnaire(request):
 
         if Questionnaire.questionnaireType == 2:
             return JsonResponse({
-                "status" : 200,
-                "result" : "提交问卷成功",
-                "totalChoiceScore":choiceQuestionScore,
-                "myChoiceScore":myScore
+                "status": 200,
+                "result": "提交问卷成功",
+                "totalChoiceScore": choiceQuestionScore,
+                "myChoiceScore": myScore
             })
         else:
             return JsonResponse({
-            "status" : 200,
-            "result" : "提交问卷成功"
-        })
+                "status": 200,
+                "result": "提交问卷成功"
+            })
     else:
         return JsonResponse({
-            'status':400,
-            'result':"请求方式错误"
+            'status': 400,
+            'result': "请求方式错误"
         })
 
 
@@ -591,13 +605,13 @@ def markQuestionnaire(request):
         studentId = params.get("studentId")
         questionnaireId = params.get("questionnaireId")
         scores = params.get("scores")
-        answerQuestionnaire = AnswerQuestionnaire.objects.get(answerId=studentId,questionnaireId=questionnaireId)
+        answerQuestionnaire = AnswerQuestionnaire.objects.get(answerId=studentId, questionnaireId=questionnaireId)
         answerQuestions = AnswerQuestions.objects.filter(answerQuestionnaireId=answerQuestionnaire.id)
         index = 0
         for answerQuestion in answerQuestions:
             question = Questions.objects.get(id=answerQuestion.answerQuestionId)
             # 选择题分数自动评价
-            if question.questionTypeId == 1 or question.questionTypeId ==5 or question.questionTypeId ==6:
+            if question.questionTypeId == 1 or question.questionTypeId == 5 or question.questionTypeId == 6:
                 totalScore += answerQuestion.thisScore
             # 其他题分数教师评价
             else:
@@ -606,22 +620,22 @@ def markQuestionnaire(request):
         answerQuestionnaire.myScore = totalScore
         answerQuestionnaire.save()
         return JsonResponse({
-            "status":200,
-            "result":"评分成功",
-            "totalScore":totalScore
+            "status": 200,
+            "result": "评分成功",
+            "totalScore": totalScore
         })
+
 
 # 保存问卷（创建问卷）
 def saveQuestionnaire(request):
     if request.method == 'POST':
         information = json.loads(request.body.decode())
         authorId = information.get('authorId')
-        print(authorId)
         problems = information.get('questionList')
         questionAmount = len(problems)
         questionnaireType = information.get("questionnaireType");
         if questionnaireType is None:
-                questionnaireType = 1
+            questionnaireType = 1
         try:
             questionnaire = QuestionnaireInformation(
                 authorId=authorId,
@@ -651,13 +665,13 @@ def saveQuestionnaire(request):
                     choiceAmount=choiceAmount,
                     questionOrder=i,
                     questionInformation=problem.get('questionInformation'),
-                    outOfOrder=problem.get('outOfOrder'),
+                    outOfOrder=problem.get('outOfOrder')
                 )
                 if questionnaireType == 2:
                     question.key = problem.get("key")
                     question.score = problem.get("score")
                 question.save()
-                i = i+1
+                i = i + 1
                 questionId = question.id
                 if choiceAmount > 0:
                     j = 1
@@ -676,7 +690,7 @@ def saveQuestionnaire(request):
                             op.currentQuota = option.get('currentQuota')
                             op.limitNumber = option.get('limitNumber')
                         op.save()
-                        j=j+1
+                        j = j + 1
             return JsonResponse({'status': 200, 'result': "保存成功"})
         except Exception:
             return JsonResponse({'status': 300, 'result': "保存问卷失败"})
@@ -743,9 +757,11 @@ def getMyQuestionnaire(request):
                 elif method == -2:
                     questionnaires = QuestionnaireInformation.objects.filter(authorId=authorId).order_by('-startTime')
                 elif method == 3:
-                    questionnaires = QuestionnaireInformation.objects.filter(authorId=authorId).order_by('recoveryAmount')
+                    questionnaires = QuestionnaireInformation.objects.filter(authorId=authorId).order_by(
+                        'recoveryAmount')
                 elif method == -3:
-                    questionnaires = QuestionnaireInformation.objects.filter(authorId=authorId).order_by('-recoveryAmount')
+                    questionnaires = QuestionnaireInformation.objects.filter(authorId=authorId).order_by(
+                        '-recoveryAmount')
                 else:
                     return JsonResponse({'status': 400, 'result': "排序方法出错"})
                 if questionnaires.exists():
@@ -874,7 +890,7 @@ def editQuestionnaire(request):
                 questionnaire.questionnaireType = questionnaireType
                 questionnaire.save()
                 questionnaireId = oldQuestionnaireId
-                i=1
+                i = 1
                 for problem in problems:
                     options = problem.get('optionList')
                     choiceAmount = len(options)
@@ -893,7 +909,7 @@ def editQuestionnaire(request):
                         question.score = problem.get('score')
                         question.key = problem.get('key')
                     question.save()
-                    i = i+1
+                    i = i + 1
                     questionId = question.id
                     # 判断是否有optionList
                     if choiceAmount > 0:
@@ -912,7 +928,7 @@ def editQuestionnaire(request):
                                 op.limitNumber = option.get('limitNumber')
                                 op.maxQuota = option.get('maxQuota')
                             op.save()
-                            j = j+1
+                            j = j + 1
                 return JsonResponse({'status': 200, 'result': "保存成功"})
             except Exception:
                 return JsonResponse({'status': 400, 'result': "保存问卷失败"})
@@ -920,6 +936,7 @@ def editQuestionnaire(request):
             return JsonResponse({'status': 401, 'result': "用户未登录"})
     else:
         return JsonResponse({'status': 401, 'result': "请求方式错误"})
+
 
 # 问卷修改（发布后）
 def modifyQuestionnaire(request):
@@ -929,9 +946,9 @@ def modifyQuestionnaire(request):
             try:
                 questionnaireId = information.get('questionnaireId')
                 questionnaire = QuestionnaireInformation.objects.get(id=questionnaireId)
-                questionnaire.questionnaireTitle=information.get('questionnaireTitle')
-                questionnaire.questionnaireInformation=information.get('questionnaireInformation')
-                questionnaire.maxRecovery=information.get('maxRecovery')
+                questionnaire.questionnaireTitle = information.get('questionnaireTitle')
+                questionnaire.questionnaireInformation = information.get('questionnaireInformation')
+                questionnaire.maxRecovery = information.get('maxRecovery')
                 questionnaire.save()
                 questions = information.get('questionList')
                 for question in questions:
@@ -954,28 +971,6 @@ def modifyQuestionnaire(request):
         return JsonResponse({'status': 401, 'result': "请求方式错误"})
 
 
-# def returnSession(request):
-#     return JsonResponse({
-#         "myid":myId
-#     })
-
-# 获取问卷id
-
-# def getQuestionnaireId(request):
-#     if request.method == 'GET':
-#         global myId
-#         k = myId
-#         questionnaireIds = QuestionnaireInformation.objects.filter(authorId=myId)
-#         myId = k
-#         data = []
-#         for questionnaireId in questionnaireIds:
-#             data.append({'id':questionnaireId.id})
-#         return JsonResponse({
-#             "status":200,
-#             "data":data,
-#             "result":"获取成功"
-#         })
-
 # 彻底删除问卷
 def deleteCompletelyQuestionnaire(request):
     if request.method == 'POST':
@@ -986,6 +981,7 @@ def deleteCompletelyQuestionnaire(request):
         return JsonResponse({'status': 200, 'result': "删除成功"})
     else:
         return JsonResponse({'status': 401, 'result': "请求方式错误"})
+
 
 # 复制问卷
 def copyQuestionnaire(request):
@@ -1044,6 +1040,7 @@ def copyQuestionnaire(request):
         return JsonResponse({'status': 200, 'result': "复制成功"})
     else:
         return JsonResponse({'status': 401, 'result': "请求方式错误"})
+
 
 # 生成回答界面所需的数据
 def getAnswerQuestionnaireInterface(request):
@@ -1116,3 +1113,25 @@ def getAnswerQuestionnaireInterface(request):
             return JsonResponse(res)
     else:
         return JsonResponse({'status': 401, 'result': "请求方式错误"})
+
+# def returnSession(request):
+#     return JsonResponse({
+#         "myid":myId
+#     })
+
+# 获取问卷id
+
+# def getQuestionnaireId(request):
+#     if request.method == 'GET':
+#         global myId
+#         k = myId
+#         questionnaireIds = QuestionnaireInformation.objects.filter(authorId=myId)
+#         myId = k
+#         data = []
+#         for questionnaireId in questionnaireIds:
+#             data.append({'id':questionnaireId.id})
+#         return JsonResponse({
+#             "status":200,
+#             "data":data,
+#             "result":"获取成功"
+#         })
