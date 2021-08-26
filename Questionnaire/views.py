@@ -1055,10 +1055,12 @@ def getAnswerQuestionnaireInterface(request):
         except Exception:
             return JsonResponse({'status': 400, 'result': "找不到该问卷"})
         else:
+            questionOutOfOrder = questionnaire.outOfOrder
             questionList = []
             questions = Questions.objects.filter(questionnaireId=questionnaireId).order_by('questionOrder')
             for question in questions:
                 questionId = question.id
+                optionOutOfOrder = question.outOfOrder
                 optionList = []
                 options = Options.objects.filter(questionId=questionId).order_by('optionOrder')
                 for option in options:
@@ -1077,6 +1079,7 @@ def getAnswerQuestionnaireInterface(request):
                             'limitNumber': option.limitNumber
                         }
                     )
+                if optionOutOfOrder == True:
                     random.shuffle(optionList)
                 questionList.append(
                     {
@@ -1094,7 +1097,8 @@ def getAnswerQuestionnaireInterface(request):
                         'optionList': optionList,
                     }
                 )
-            random.shuffle(questionList)
+            if questionOutOfOrder == True:
+                random.shuffle(questionList)
             res = {
                 'questionnaireTitle': questionnaire.questionnaireTitle,
                 'questionnaireInformation': questionnaire.questionnaireInformation,
