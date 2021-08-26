@@ -803,6 +803,10 @@ def getQuestionnaireDetails(request):
                             'optionType': option.optionType,
                             'optionScore': option.optionScore,
                             'optionText': option.optionText,
+                            'selectNumber': option.selectNumber,
+                            'maxQuota': option.maxQuota,
+                            'currentQuota': option.currentQuota,
+                            'limitNumber': option.limitNumber
                         }
                     )
                 questionList.append(
@@ -814,14 +818,24 @@ def getQuestionnaireDetails(request):
                         'multipleChoice': question.multipleChoice,
                         'choiceAmount': question.choiceAmount,
                         'questionOrder': question.questionOrder,
-                        'optionList':optionList
+                        'questionInformation': question.questionInformation,
+                        'outOfOrder': question.outOfOrder,
+                        'score': question.score,
+                        'key': question.key,
+                        'optionList': optionList,
                     }
                 )
             res = {
                 'questionnaireTitle': questionnaire.questionnaireTitle,
                 'questionnaireInformation': questionnaire.questionnaireInformation,
                 'questionAmount': questionnaire.questionAmount,
+                'lastEndTime': questionnaire.lastEndTime,
+                'insertQuestionNumber': questionnaire.insertQuestionNumber,
+                'outOfOrder': questionnaire.outOfOrder,
+                'questionnaireType': questionnaire.questionnaireType,
+                'totalScore': questionnaire.totalScore,
                 'questionList': questionList,
+
                 'status': 200,
                 'result': "获取问卷信息成功"
             }
@@ -833,7 +847,6 @@ def getQuestionnaireDetails(request):
 # 问卷编辑（发布前）
 def editQuestionnaire(request):
     if request.method == 'POST':
-
         if True:
             try:
                 information = json.loads(request.body.decode())
@@ -841,8 +854,7 @@ def editQuestionnaire(request):
                 print(oldQuestionnaireId)
                 oldQuestions = Questions.objects.filter(questionnaireId=oldQuestionnaireId)
                 for oldQuestion in oldQuestions:
-                    oldQuestion.questionnaireId = -1
-                    oldQuestion.save()
+                    oldQuestion.delete()
                 problems = information.get('questionList')
                 questionAmount = len(problems)
                 questionnaire = QuestionnaireInformation.objects.get(id=oldQuestionnaireId)
@@ -850,6 +862,15 @@ def editQuestionnaire(request):
                 questionnaire.questionnaireInformation = information.get('questionnaireInformation')
                 questionnaire.maxRecovery = information.get('maxRecovery')
                 questionnaire.questionAmount = questionAmount
+                questionnaireType = information.get('questionnaireType')
+                if questionnaireType is None:
+                    questionnaireType = 1
+                if questionnaireType == 2:
+                    totalScore = information.get('totalScore')
+                    questionnaire.totalScore = totalScore
+                questionnaire.insertQuestionNumber = information.get('insertQuestionNumber')
+                questionnaire.outOfOrder = information.get('outOfOrder')
+                questionnaire.questionnaireType = questionnaireType
                 questionnaire.save()
                 questionnaireId = oldQuestionnaireId
                 i=1
@@ -863,8 +884,13 @@ def editQuestionnaire(request):
                         questionTypeId=problem.get('questionTypeId'),
                         multipleChoice=problem.get('multipleChoice'),
                         choiceAmount=choiceAmount,
-                        questionOrder=i
+                        questionOrder=i,
+                        questionInformation=problem.get('questionInformation'),
+                        outOfOrder=problem.get('outOfOrder'),
                     )
+                    if questionnaireType == 2:
+                        question.score = problem.get('score')
+                        question.key = problem.get('key')
                     question.save()
                     i = i+1
                     questionId = question.id
@@ -881,6 +907,9 @@ def editQuestionnaire(request):
                                 optionScore=option.get('optionScore'),
                                 optionText=option.get('optionText')
                             )
+                            if questionnaireType == 3:
+                                op.limitNumber = option.get('limitNumber')
+                                op.maxQuota = option.get('maxQuota')
                             op.save()
                             j = j+1
                 return JsonResponse({'status': 200, 'result': "保存成功"})
