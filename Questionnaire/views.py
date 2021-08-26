@@ -331,7 +331,6 @@ def backQuestionnaire(request):
             "status": 401,
             "result": "请求方式错误"
         })
-#
 
 
 # 按问卷回收量排序
@@ -738,8 +737,16 @@ def getMyQuestionnaire(request):
                     questionnaires = QuestionnaireInformation.objects.filter(authorId=authorId).order_by('setUpTime')
                 elif method == -1:
                     questionnaires = QuestionnaireInformation.objects.filter(authorId=authorId).order_by('-setUpTime')
+                elif method == 2:
+                    questionnaires = QuestionnaireInformation.objects.filter(authorId=authorId).order_by('startTime')
+                elif method == -2:
+                    questionnaires = QuestionnaireInformation.objects.filter(authorId=authorId).order_by('-startTime')
+                elif method == 3:
+                    questionnaires = QuestionnaireInformation.objects.filter(authorId=authorId).order_by('recoveryAmount')
+                elif method == -3:
+                    questionnaires = QuestionnaireInformation.objects.filter(authorId=authorId).order_by('-recoveryAmount')
                 else:
-                    return JsonResponse({'status': 400, 'result': "排序方法出错,应该为-1或1"})
+                    return JsonResponse({'status': 400, 'result': "排序方法出错"})
                 if questionnaires.exists():
                     questionnaireList = []
                     for questionnaire in questionnaires:
@@ -752,7 +759,8 @@ def getMyQuestionnaire(request):
                                 'answerAmount': questionnaire.recoveryAmount,
                                 'setUpTime': questionnaire.setUpTime,
                                 'startTime': questionnaire.startTime,
-                                'latestAlterTime': questionnaire.latestAlterTime
+                                'latestAlterTime': questionnaire.latestAlterTime,
+                                'lastEndTime': questionnaire.lastEndTime,
                             }
                         )
                     res['questionnaireList'] = questionnaireList
@@ -946,5 +954,63 @@ def deleteCompletelyQuestionnaire(request):
         questionnaire = QuestionnaireInformation.objects.get(id=questionnaireId)
         questionnaire.delete()
         return JsonResponse({'status': 200, 'result': "删除成功"})
+    else:
+        return JsonResponse({'status': 401, 'result': "请求方式错误"})
+
+# 复制问卷
+def copyQuestionnaire(request):
+    if request.method == 'POST':
+        req = json.loads(request.body.decode())
+        questionnaireId = req.get('questionnaireId')
+        oldQuestionnaire = QuestionnaireInformation.objects.get(id=questionnaireId)
+        newQuestionnaire = QuestionnaireInformation(
+            authorId=oldQuestionnaire.authorId,
+            questionnaireTitle=oldQuestionnaire.questionnaireTitle + "-副本",
+            questionnaireInformation=oldQuestionnaire.questionnaireInformation,
+            maxRecovery=oldQuestionnaire.maxRecovery,
+            questionAmount=oldQuestionnaire.questionAmount,
+            totalScore=oldQuestionnaire.totalScore,
+            insertQuestionNumber=oldQuestionnaire.insertQuestionNumber,
+            outOfOrder=oldQuestionnaire.outOfOrder,
+            questionnaireType=oldQuestionnaire.questionnaireType,
+            currentState=False
+        )
+        newQuestionnaire.save()
+        newQuestionnaireId = newQuestionnaire.id
+        oldQuestions = Questions.objects.filter(questionnaireId=questionnaireId)
+        for oldQuestion in oldQuestions:
+            oldQuestionId = oldQuestion.id
+            newQuestion = Questions(
+                questionnaireId=newQuestionnaireId,
+                questionTitle=oldQuestion.questionTitle,
+                questionTypeId=oldQuestion.questionTypeId,
+                required=oldQuestion.required,
+                multipleChoice=oldQuestion.multipleChoice,
+                choiceAmount=oldQuestion.choiceAmount,
+                questionOrder=oldQuestion.questionOrder,
+                questionInformation=oldQuestion.questionInformation,
+                outOfOrder=oldQuestionnaire.outOfOrder,
+                score=oldQuestion.score,
+                key=oldQuestion.key
+            )
+            newQuestion.save()
+            newQuestionId = newQuestion.id
+            oldOptions = Options.objects.filter(questionId=oldQuestionId)
+            for oldOption in oldOptions:
+                newOption = Options(
+                    questionId=newQuestionId,
+                    optionOrder=oldOption.optionOrder,
+                    required=oldOption.required,
+                    optionContent=oldOption.optionContent,
+                    optionType=oldOption.optionType,
+                    optionScore=oldOption.optionScore,
+                    optionText=oldOption.optionText,
+                    selectNumber=oldOption.selectNumber,
+                    maxQuota=oldOption.maxQuota,
+                    currentQuota=oldOption.currentQuota,
+                    limitNumber=oldOption.limitNumber
+                )
+                newOption.save()
+        return JsonResponse({'status': 200, 'result': "复制成功"})
     else:
         return JsonResponse({'status': 401, 'result': "请求方式错误"})
