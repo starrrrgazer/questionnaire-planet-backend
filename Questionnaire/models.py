@@ -9,16 +9,16 @@ class QuestionnaireInformation(models.Model):
     # 发起者Id
     authorId = models.IntegerField(null=False)
     # 问卷标题
-    questionnaireTitle = models.CharField(max_length=32,null=False)
+    questionnaireTitle = models.CharField(max_length=256, null=False)
     # 问卷介绍
-    questionnaireInformation = models.CharField(max_length=255)
+    questionnaireInformation = models.CharField(max_length=1024)
     # 创建时间
     setUpTime = models.DateTimeField(auto_now_add=True,null=True)
     # 最近修改时间
     latestAlterTime = models.DateTimeField(auto_now=True,null=True)
     # 问卷发布时间
     startTime = models.DateTimeField(null=True)
-    # 问卷结束时间(设定的结束时间)
+    # 问卷结束时间(最近一次停止发布的时间)
     endTime = models.DateTimeField(null=True)
     # 问卷截止时间（最终真正结束时间）
     lastEndTime = models.DateTimeField(null=True)
@@ -36,15 +36,19 @@ class QuestionnaireInformation(models.Model):
     totalScore = models.IntegerField(null=True)
     # 问卷种类
     questionnaireType = models.IntegerField(default=1)
-
 #     题目是否乱序
+    outOfOrder = models.BooleanField(default=False)
+    # 是否插入题号
+    insertQuestionNumber = models.BooleanField(default=True)
 
 # 问卷中的题目
 class Questions(models.Model):
     # 所属问卷id
     questionnaireId = models.IntegerField(null=False,unique=False)
     # 题干
-    questionTitle = models.CharField(max_length=255)
+    questionTitle = models.CharField(max_length=512)
+    # 题目描述
+    questionInformation = models.CharField(max_length=512)
     # 题目类型id
     questionTypeId = models.IntegerField(null=False,unique=False)
     # 是否必填
@@ -59,8 +63,8 @@ class Questions(models.Model):
     score = models.IntegerField(null=True)
 #    本题答案
     key = models.CharField(null=True,max_length=255)
-
 #     选项是否乱序
+    outOfOrder = models.BooleanField(default=False)
 
 
 # 题目类型
@@ -105,6 +109,8 @@ class AnswerQuestionnaire(models.Model):
     commitTime = models.DateTimeField(auto_now_add=True)
 #     问卷得分
     myScore = models.IntegerField(null=True)
+    # 定位信息
+    position = models.CharField(max_length=256,null=True)
 
 
 # 回收问卷的题目信息
