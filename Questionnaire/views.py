@@ -617,20 +617,26 @@ def markQuestionnaire(request):
 # 保存问卷
 def saveQuestionnaire(request):
     if request.method == 'POST':
+        information = json.loads(request.body.decode())
+        authorId = information.get('authorId')
+        print(authorId)
+        problems = information.get('questionList')
+        questionAmount = len(problems)
+        questionnaireType = information.get("questionnaireType");
+        if questionnaireType is None:
+                questionnaireType = 1
         try:
-            information = json.loads(request.body.decode())
-            authorId = information.get('authorId')
-            print(authorId)
-            problems = information.get('questionList')
-            questionAmount = len(problems)
             questionnaire = QuestionnaireInformation(
                 authorId=authorId,
                 questionnaireTitle=information.get('questionnaireTitle'),
                 questionnaireInformation=information.get('questionnaireInformation'),
                 maxRecovery=information.get('maxRecovery'),
                 questionAmount=questionAmount,
-                currentState=False
+                currentState=False,
+                questionnaireType=questionnaireType
             )
+            if questionnaireType == 2 :
+                questionnaire.totalScore = information.get("score")
             questionnaire.save()
             questionnaireId = questionnaire.id
             i = 1
@@ -646,6 +652,9 @@ def saveQuestionnaire(request):
                     choiceAmount=choiceAmount,
                     questionOrder=i
                 )
+                if questionnaireType == 2 :
+                    question.key = problem.get("key")
+                    question.score = problem.get("score")
                 question.save()
                 i = i+1
                 questionId = question.id
