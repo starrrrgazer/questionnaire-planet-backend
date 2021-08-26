@@ -488,8 +488,9 @@ def submitQuestionnaire(request):
                 newAnswerOption.optionContent = newAnswerQuestions[index]['answer']
                 newAnswerOption.answerOptionOrder = newAnswerQuestions[index]['answer']
                 newAnswerOption.answerQuestionId = newAnswerQuestion.id
-                newAnswerOption.answerOptionId = Options.objects.get(questionId= newAnswerQuestion.answerQuestionId,
-                                                                     optionOrder= newAnswerOption.answerOptionOrder).id
+                newOption = Options.objects.get(questionId= newAnswerQuestion.answerQuestionId,
+                                                                     optionOrder= newAnswerOption.answerOptionOrder)
+                newAnswerOption.answerOptionId = newOption.id
                 # 考试问卷 选择题评分
                 if Questionnaire.questionnaireType == 2:
                     question = Questions.objects.get(id = newAnswerQuestion.answerQuestionId)
@@ -500,6 +501,9 @@ def submitQuestionnaire(request):
                         newAnswerQuestion.thisScore = 0
                     choiceQuestionScore += question.score
                     newAnswerQuestion.save()
+                if Questionnaire.questionnaireType == 4:
+                    newOption.selectNumber += 1
+                    newOption.save()
                 newAnswerOption.save()
             elif newAnswerQuestion.questionTypeId == 5 :
                 answer = newAnswerQuestions[index]['answer']
@@ -510,8 +514,9 @@ def submitQuestionnaire(request):
                     newAnswerOption.optionContent = newAnswerQuestions[index]['answer']
                     newAnswerOption.answerOptionOrder = newAnswerQuestions[index]['answer'][i]
                     newAnswerOption.answerQuestionId = newAnswerQuestion.id
-                    newAnswerOption.answerOptionId = Options.objects.get(questionId=newAnswerQuestion.answerQuestionId,
-                                                                         optionOrder=newAnswerOption.answerOptionOrder).id
+                    newOption = Options.objects.get(questionId=newAnswerQuestion.answerQuestionId,
+                                                    optionOrder=newAnswerOption.answerOptionOrder)
+                    newAnswerOption.answerOptionId = newOption.id
                     # 考试问卷 多选题评分
                     if Questionnaire.questionnaireType == 2:
                         question = Questions.objects.get(id=newAnswerQuestion.answerQuestionId)
@@ -525,6 +530,9 @@ def submitQuestionnaire(request):
                             newAnswerQuestion.thisScore = 0
                         choiceQuestionScore += question.score
                         newAnswerQuestion.save()
+                    if Questionnaire.questionnaireType == 4:
+                        newOption.selectNumber += 1
+                        newOption.save()
                     newAnswerOption.save()
 
 
@@ -1043,3 +1051,36 @@ def copyQuestionnaire(request):
         return JsonResponse({'status': 200, 'result': "复制成功"})
     else:
         return JsonResponse({'status': 401, 'result': "请求方式错误"})
+
+# 搜索问卷
+def searchQuestionnaire(request):
+    if request.method == 'POST':
+        params = json.loads(request.body)
+        questionnaireTitle = params.get("questionnaireTitle")
+        authorId = params.get("authorId")
+        questionnaires = QuestionnaireInformation.objects.filter(questionnaireTitle__contains=questionnaireTitle,
+                                                                 authorId=authorId)
+        questionnaireList = []
+        for questionnaire in questionnaires:
+            questionnaireList.append(
+                {
+                    'questionnaireId': questionnaire.id,
+                    'questionnaireTitle': questionnaire.questionnaireTitle,
+                    'currenState': questionnaire.currentState,
+                    'deleted': questionnaire.deleted,
+                    'answerAmount': questionnaire.recoveryAmount,
+                    'setUpTime': questionnaire.setUpTime,
+                    'startTime': questionnaire.startTime,
+                    'latestAlterTime': questionnaire.latestAlterTime,
+                    'lastEndTime': questionnaire.lastEndTime,
+                }
+            )
+        return JsonResponse({
+            "status":200,
+            "result":"查询成功",
+            "data":questionnaireList
+        })
+
+
+
+
