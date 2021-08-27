@@ -471,6 +471,19 @@ def submitQuestionnaire(request):
             # 选择题得分
             choiceQuestionScore = 0
             myScore = 0
+        #     筛查是否存在满额选项
+        if Questionnaire.questionnaireType == 3:
+            questions = Questions.objects.filter(questionnaireId=params.get("questionnaireId"))
+            for question in questions:
+                if question.questionTypeId == 1 or question.questionTypeId == 5:
+                    options = Options.objects.filter(questionId=question.id)
+                    for option in options:
+                        if option.limitNumber is True and option.currentQuota <=0:
+                            return JsonResponse({
+                                "status":300,
+                                "result":"选项"+option.optionContent+"名额已满！"
+                            })
+
         Questionnaire.save()
         answerQuestionnaire.save()
         for index in range(0,questionAmount):
@@ -506,6 +519,12 @@ def submitQuestionnaire(request):
                         newAnswerQuestion.thisScore = 0
                     choiceQuestionScore += question.score
                     newAnswerQuestion.save()
+                # 报名问卷 限额
+                elif Questionnaire.questionnaireType == 3 and newOption.limitNumber is True:
+                    newOption.currentQuota -= 1
+                    newOption.save()
+
+
                 newAnswerOption.save()
             elif newAnswerQuestion.questionTypeId == 5 :
                 answer = newAnswerQuestions[index]['answer']
@@ -533,6 +552,10 @@ def submitQuestionnaire(request):
                         newAnswerQuestion.save()
                     if Questionnaire.questionnaireType == 4:
                         newOption.selectNumber += 1
+                        newOption.save()
+                    # 报名问卷 限额
+                    elif Questionnaire.questionnaireType == 3 and newOption.limitNumber is True:
+                        newOption.currentQuota -= 1
                         newOption.save()
                     newAnswerOption.save()
 
@@ -628,71 +651,77 @@ def saveQuestionnaire(request):
         problems = information.get('questionList')
         questionAmount = len(problems)
         questionnaireType = information.get("questionnaireType");
+        outOfOrder = information.get('outOfOrder')
         if questionnaireType is None:
             questionnaireType = 1
-        try:
-            questionnaire = QuestionnaireInformation(
-                authorId=authorId,
-                questionnaireTitle=information.get('questionnaireTitle'),
-                questionnaireInformation=information.get('questionnaireInformation'),
-                maxRecovery=information.get('maxRecovery'),
-                questionAmount=questionAmount,
-                currentState=False,
-                questionnaireType=questionnaireType,
-                insertQuestionNumber=information.get('insertQuestionNumber'),
-                outOfOrder=information.get('outOfOrder')
+        if outOfOrder is None:
+            outOfOrder = False
+        # try:
+        questionnaire = QuestionnaireInformation(
+            authorId=authorId,
+            questionnaireTitle=information.get('questionnaireTitle'),
+            questionnaireInformation=information.get('questionnaireInformation'),
+            maxRecovery=information.get('maxRecovery'),
+            questionAmount=questionAmount,
+            currentState=False,
+            questionnaireType=questionnaireType,
+            insertQuestionNumber=information.get('insertQuestionNumber'),
+            outOfOrder=outOfOrder
+        )
+        if questionnaireType == 2:
+            questionnaire.totalScore = information.get("totalScore")
+        lastEndTime = information.get('lastEndTime')
+        if lastEndTime is None:
+            pass
+        else:
+            questionnaire.lastEndTime = lastEndTime
+        questionnaire.save()
+        questionnaireId = questionnaire.id
+        i = 1
+        for problem in problems:
+            options = problem.get('optionList')
+            choiceAmount = len(options)
+            outOfOrder = problem.get('outOfOrder')
+            if outOfOrder is None:
+                outOfOrder = False
+            question = Questions(
+                questionnaireId=questionnaireId,
+                questionTitle=problem.get('questionTitle'),
+                required=problem.get('questionRequired'),
+                questionTypeId=problem.get('questionTypeId'),
+                multipleChoice=problem.get('multipleChoice'),
+                choiceAmount=choiceAmount,
+                questionOrder=i,
+                questionInformation=problem.get('questionInformation'),
+                outOfOrder=outOfOrder
             )
             if questionnaireType == 2:
-                questionnaire.totalScore = information.get("totalScore")
-            lastEndTime = information.get('lastEndTime')
-            if lastEndTime is None:
-                pass
-            else:
-                questionnaire.lastEndTime = lastEndTime
-            questionnaire.save()
-            questionnaireId = questionnaire.id
-            i = 1
-            for problem in problems:
-                options = problem.get('optionList')
-                choiceAmount = len(options)
-                question = Questions(
-                    questionnaireId=questionnaireId,
-                    questionTitle=problem.get('questionTitle'),
-                    required=problem.get('questionRequired'),
-                    questionTypeId=problem.get('questionTypeId'),
-                    multipleChoice=problem.get('multipleChoice'),
-                    choiceAmount=choiceAmount,
-                    questionOrder=i,
-                    questionInformation=problem.get('questionInformation'),
-                    outOfOrder=problem.get('outOfOrder')
-                )
-                if questionnaireType == 2:
-                    question.key = problem.get("key")
-                    question.score = problem.get("score")
-                question.save()
-                i = i + 1
-                questionId = question.id
-                if choiceAmount > 0:
-                    j = 1
-                    for option in options:
-                        op = Options(
-                            questionId=questionId,
-                            optionOrder=j,
-                            required=option.get('optionRequired'),
-                            optionContent=option.get('optionContent'),
-                            optionType=option.get('optionType'),
-                            optionScore=option.get('optionScore'),
-                            optionText=option.get('optionText')
-                        )
-                        if questionnaireType == 3:
-                            op.maxQuota = option.get('maxQuota')
-                            op.currentQuota = option.get('currentQuota')
-                            op.limitNumber = option.get('limitNumber')
-                        op.save()
-                        j=j+1
-            return JsonResponse({'status': 200, 'result': "保存成功"})
-        except Exception:
-            return JsonResponse({'status': 300, 'result': "保存问卷失败"})
+                question.key = problem.get("key")
+                question.score = problem.get("score")
+            question.save()
+            i = i + 1
+            questionId = question.id
+            if choiceAmount > 0:
+                j = 1
+                for option in options:
+                    op = Options(
+                        questionId=questionId,
+                        optionOrder=j,
+                        required=option.get('optionRequired'),
+                        optionContent=option.get('optionContent'),
+                        optionType=option.get('optionType'),
+                        optionScore=option.get('optionScore'),
+                        optionText=option.get('optionText')
+                    )
+                    if questionnaireType == 3:
+                        op.maxQuota = option.get('maxQuota')
+                        op.currentQuota = option.get('currentQuota')
+                        op.limitNumber = option.get('limitNumber')
+                    op.save()
+                    j=j+1
+        return JsonResponse({'status': 200, 'result': "保存成功"})
+        # except Exception:
+        #     return JsonResponse({'status': 300, 'result': "保存问卷失败"})
     else:
         return JsonResponse({'status': 401, 'result': "请求方式错误"})
 
