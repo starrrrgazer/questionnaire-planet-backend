@@ -1,11 +1,13 @@
 import json
 import random
+import sys
 
 from django.utils import timezone
 
 from Questionnaire.models import *
 from django.http import JsonResponse, HttpResponse
 from user.views import *
+from django.db import transaction
 
 from django.shortcuts import render
 # Create your views here.
@@ -391,7 +393,7 @@ def sortByRecoveryAmount(request):
         for questionnaire in Questionnaires:
             myData.append({"id":questionnaire.id,
                            "author":user.objects.get(id = questionnaire.authorId).id,
-                           "title":questionnaire.questionnaireTitle,
+                           "questionnaireTitle":questionnaire.questionnaireTitle,
                            "content":questionnaire.questionnaireInformation,
                            "setUpTime": questionnaire.setUpTime,
                            "latestAlterTime":questionnaire.latestAlterTime,
@@ -492,210 +494,208 @@ def sortBySetUpTimeDesc(request):
 
 # 提交问卷
 def submitQuestionnaire(request):
-    if request.method == 'POST':
-        params = json.loads(request.body)
-        # 数组
-        newAnswerQuestions = params.get("answerQuestions")
-        questionAmount = len(newAnswerQuestions)
-        answerQuestionnaire = AnswerQuestionnaire()
-        answerQuestionnaire.questionnaireId = params.get("questionnaireId")
-        Questionnaire = QuestionnaireInformation.objects.get(id = params.get("questionnaireId"))
-        Questionnaire.recoveryAmount += 1;
+    with transaction.atomic():
+        save_id = transaction.savepoint()
+        try:
+            if request.method == 'POST':
+                params = json.loads(request.body)
+                # 数组
+                newAnswerQuestions = params.get("answerQuestions")
+                questionAmount = len(newAnswerQuestions)
+                answerQuestionnaire = AnswerQuestionnaire()
+                answerQuestionnaire.questionnaireId = params.get("questionnaireId")
+                Questionnaire = QuestionnaireInformation.objects.get(id = params.get("questionnaireId"))
+                Questionnaire.recoveryAmount += 1;
 
 
-        answerQuestionnaire.commitTime = datetime.datetime.now()
+                answerQuestionnaire.commitTime = datetime.datetime.now()
 
-        if Questionnaire.questionnaireType == 2:
-            answerQuestionnaire.answerId = params.get("examinee")
-            # 防止重复答卷
-            if len(AnswerQuestionnaire.objects.filter(answerId=answerQuestionnaire.answerId,
-                                                      questionnaireId=params.get("questionnaireId"))) >=1:
-                return JsonResponse({
-                    "status":302,
-                    "result":"请勿重复答卷"
-                })
-        # 选择题得分
-        choiceQuestionScore = 0
-        myScore = 0
-        #     筛查是否存在满额选项
-        # if Questionnaire.questionnaireType == 3:
-        #     questions = Questions.objects.filter(questionnaireId=params.get("questionnaireId"))
-        #     for question in questions:
-        #         if question.questionTypeId == 1 or question.questionTypeId == 5:
-        #             options = Options.objects.filter(questionId=question.id)
-        #             for option in options:
-        #                 if option.limitNumber is True and option.currentQuota <=0:
-        #                     return JsonResponse({
-        #                         "status":300,
-        #                         "result":"选项"+option.optionContent+"名额已满！"
-        #                     })
-
-        Questionnaire.save()
-        answerQuestionnaire.save()
-        for index in range(0,questionAmount):
-            newAnswerQuestion = AnswerQuestions()
-            newAnswerQuestion.answerQuestionnaireId = answerQuestionnaire.id
-            newAnswerQuestion.answerQuestionId = Questions.objects.get(questionnaireId=answerQuestionnaire.questionnaireId,
-                                                                       questionOrder=index+1).id
-            newAnswerQuestion.questionTypeId = Questions.objects.get(id = newAnswerQuestion.answerQuestionId).questionTypeId
-            newAnswerQuestion.answerOrder = index + 1
-
-            if newAnswerQuestion.questionTypeId == 2:
-                newAnswerQuestion.answerText = newAnswerQuestions[index]['answer']
-            newAnswerQuestion.save()
-
-            if newAnswerQuestion.questionTypeId == 1 or newAnswerQuestion.questionTypeId == 6 :
-                newAnswerOption = AnswerOptions()
-                newAnswerOption.optionType = 1;
-                newAnswerOption.optionContent = newAnswerQuestions[index]['answer']
-                newAnswerOption.answerOptionOrder = newAnswerQuestions[index]['answer']
-                newAnswerOption.answerQuestionId = newAnswerQuestion.id
-                newOption = Options.objects.get(questionId= newAnswerQuestion.answerQuestionId,
-                                                                     optionOrder= newAnswerOption.answerOptionOrder)
-                newAnswerOption.answerOptionId = newOption.id
-                newAnswerOption.answerOptionId = Options.objects.get(questionId=newAnswerQuestion.answerQuestionId,
-                                                                     optionOrder=newAnswerOption.answerOptionOrder).id
-                # 考试问卷 选择题评分
                 if Questionnaire.questionnaireType == 2:
-                    question = Questions.objects.get(id = newAnswerQuestion.answerQuestionId)
-                    if newAnswerQuestions[index]['answer'] == question.key:
-                        myScore += question.score
-                        newAnswerQuestion.thisScore = question.score
-                    else:
-                        newAnswerQuestion.thisScore = 0
-                    choiceQuestionScore += question.score
-                    newAnswerQuestion.save()
-                # 报名问卷 限额
-                elif Questionnaire.questionnaireType == 3 and newOption.limitNumber is True:
-                    if newOption.currentQuota <= 0:
+                    answerQuestionnaire.answerId = params.get("examinee")
+                    # 防止重复答卷
+                    if len(AnswerQuestionnaire.objects.filter(answerId=answerQuestionnaire.answerId,
+                                                              questionnaireId=params.get("questionnaireId"))) >=1:
                         return JsonResponse({
-                            "status":300,
-                            "result":newOption.optionContent+"名额已满！"
+                            "status":302,
+                            "result":"请勿重复答卷"
                         })
-                    newOption.currentQuota -= 1
-                    newOption.save()
+                # 选择题得分
+                choiceQuestionScore = 0
+                myScore = 0
+
+                Questionnaire.save()
+                answerQuestionnaire.save()
+                for index in range(0,questionAmount):
+                    newAnswerQuestion = AnswerQuestions()
+                    newAnswerQuestion.answerQuestionnaireId = answerQuestionnaire.id
+                    newAnswerQuestion.answerQuestionId = Questions.objects.get(questionnaireId=answerQuestionnaire.questionnaireId,
+                                                                               questionOrder=index+1).id
+                    newAnswerQuestion.questionTypeId = Questions.objects.get(id = newAnswerQuestion.answerQuestionId).questionTypeId
+                    newAnswerQuestion.answerOrder = index + 1
+
+                    if newAnswerQuestion.questionTypeId == 2:
+                        newAnswerQuestion.answerText = newAnswerQuestions[index]['answer']
+                    newAnswerQuestion.save()
+
+                    if newAnswerQuestion.questionTypeId == 1 or newAnswerQuestion.questionTypeId == 6 :
+                        newAnswerOption = AnswerOptions()
+                        newAnswerOption.optionType = 1;
+                        newAnswerOption.optionContent = newAnswerQuestions[index]['answer']
+                        newAnswerOption.answerOptionOrder = newAnswerQuestions[index]['answer']
+                        newAnswerOption.answerQuestionId = newAnswerQuestion.id
+                        newOption = Options.objects.get(questionId= newAnswerQuestion.answerQuestionId,
+                                                                             optionOrder= newAnswerOption.answerOptionOrder)
+                        newAnswerOption.answerOptionId = newOption.id
+                        newAnswerOption.answerOptionId = Options.objects.get(questionId=newAnswerQuestion.answerQuestionId,
+                                                                             optionOrder=newAnswerOption.answerOptionOrder).id
+                        # 考试问卷 选择题评分
+                        if Questionnaire.questionnaireType == 2:
+                            question = Questions.objects.get(id = newAnswerQuestion.answerQuestionId)
+                            if newAnswerQuestions[index]['answer'] == question.key:
+                                myScore += question.score
+                                newAnswerQuestion.thisScore = question.score
+                            else:
+                                newAnswerQuestion.thisScore = 0
+                            choiceQuestionScore += question.score
+                            newAnswerQuestion.save()
+                        # 报名问卷 限额
+                        elif Questionnaire.questionnaireType == 3 and newOption.limitNumber is True:
+                            if newOption.currentQuota <= 0:
+                                transaction.savepoint_rollback(save_id)
+                                return JsonResponse({
+                                    "status":300,
+                                    "result":newOption.optionContent+"名额已满！"
+                                })
+                            newOption.currentQuota -= 1
+                            newOption.save()
+                        elif Questionnaire.questionnaireType == 4:
+                            newOption.selectNumber += 1
+                            newOption.save()
+
+
+                        newAnswerOption.save()
+                    elif newAnswerQuestion.questionTypeId == 5 :
+                        answer = newAnswerQuestions[index]['answer']
+                        answerAmount = len(answer)
+                        for i in range(0,answerAmount):
+                            newOption1 = Options.objects.get(questionId=newAnswerQuestion.answerQuestionId,
+                                                            optionOrder=newAnswerQuestions[index]['answer'][i])
+                            newAnswerOption = AnswerOptions()
+                            newAnswerOption.optionType = 1;
+                            newAnswerOption.optionContent = newAnswerQuestions[index]['answer']
+                            newAnswerOption.answerOptionOrder = newAnswerQuestions[index]['answer'][i]
+                            newAnswerOption.answerQuestionId = newAnswerQuestion.id
+                            newAnswerOption.answerOptionId = Options.objects.get(questionId=newAnswerQuestion.answerQuestionId,
+                                                                                 optionOrder=newAnswerOption.answerOptionOrder).id
+                            # 考试问卷 多选题评分
+                            if Questionnaire.questionnaireType == 2:
+                                question = Questions.objects.get(id=newAnswerQuestion.answerQuestionId)
+                                if newAnswerQuestions[index]['answer'] == question.key:
+                                    myScore += question.score
+                                    newAnswerQuestion.thisScore = question.score
+                                elif newAnswerQuestions[index]['answer'] in question.key:
+                                    myScore += question.score//2
+                                    newAnswerQuestion.thisScore = question.score//2
+                                else:
+                                    newAnswerQuestion.thisScore = 0
+                                choiceQuestionScore += question.score
+                                newAnswerQuestion.save()
+                            if Questionnaire.questionnaireType == 4:
+                                newOption1.selectNumber += 1
+                                newOption1.save()
+                            # 报名问卷 限额
+                            elif Questionnaire.questionnaireType == 3 and newOption.limitNumber is True:
+                                if newOption1.currentQuota <= 0:
+                                    return JsonResponse({
+                                        "status": 300,
+                                        "result": newOption1.optionContent + "名额已满！"
+                                    })
+                                newOption1.currentQuota -= 1
+                                newOption1.save()
+                            newAnswerOption.save()
+
+
+                    elif newAnswerQuestion.questionTypeId == 2:
+                        newAnswerOption = AnswerOptions()
+                        newAnswerOption.optionType = 2;
+                        newAnswerOption.optionContent = 1
+                        newAnswerOption.answerOptionOrder = 1
+                        newAnswerOption.completionContent = newAnswerQuestions[index]['answer']
+                        newAnswerOption.answerQuestionId = newAnswerQuestion.id
+                        # newAnswerOption.answerOptionId = Options.objects.get(questionId=newAnswerQuestion.answerQuestionId,
+                        #                                                      ).id
+                        newAnswerOption.answerOptionId = -1
+                        newAnswerOption.save()
+                    elif newAnswerQuestion.questionTypeId == 3:
+                        newAnswerOption = AnswerOptions()
+                        newAnswerOption.optionType = 3;
+                        newAnswerOption.optionContent = 1
+                        newAnswerOption.answerOptionOrder = 1
+                        newAnswerOption.optionScore = newAnswerQuestions[index]['answer']
+                        newAnswerOption.answerQuestionId = newAnswerQuestion.id
+                        # newAnswerOption.answerOptionId = Options.objects.get(questionId=newAnswerQuestion.answerQuestionId,
+                        #                                                      ).id
+                        newAnswerOption.answerOptionId = -1
+                        newAnswerOption.save()
+                    elif newAnswerQuestion.questionTypeId == 4:
+                        newAnswerOption = AnswerOptions()
+                        newAnswerOption.optionType = 3;
+                        newAnswerOption.optionContent = 1
+                        newAnswerOption.answerOptionOrder = 1
+                        newAnswerOption.optionScore = newAnswerQuestions[index]['answer']
+                        newAnswerOption.optionScoreText = newAnswerQuestions[index]['comment']
+                        newAnswerOption.answerQuestionId = newAnswerQuestion.id
+                        # newAnswerOption.answerOptionId = Options.objects.get(questionId=newAnswerQuestion.answerQuestionId,
+                        #                                                      ).id
+                        newAnswerOption.answerOptionId = -1
+                        newAnswerOption.save()
+
+                if Questionnaire.questionnaireType == 2:
+                    return JsonResponse({
+                        "status" : 200,
+                        "result" : "提交问卷成功",
+                        "totalChoiceScore":choiceQuestionScore,
+                        "myChoiceScore":myScore
+                    })
                 elif Questionnaire.questionnaireType == 4:
-                    newOption.selectNumber += 1
-                    newOption.save()
-
-
-                newAnswerOption.save()
-            elif newAnswerQuestion.questionTypeId == 5 :
-                answer = newAnswerQuestions[index]['answer']
-                answerAmount = len(answer)
-                for i in range(0,answerAmount):
-                    newOption1 = Options.objects.get(questionId=newAnswerQuestion.answerQuestionId,
-                                                    optionOrder=newAnswerQuestions[index]['answer'][i])
-                    newAnswerOption = AnswerOptions()
-                    newAnswerOption.optionType = 1;
-                    newAnswerOption.optionContent = newAnswerQuestions[index]['answer']
-                    newAnswerOption.answerOptionOrder = newAnswerQuestions[index]['answer'][i]
-                    newAnswerOption.answerQuestionId = newAnswerQuestion.id
-                    newAnswerOption.answerOptionId = Options.objects.get(questionId=newAnswerQuestion.answerQuestionId,
-                                                                         optionOrder=newAnswerOption.answerOptionOrder).id
-                    # 考试问卷 多选题评分
-                    if Questionnaire.questionnaireType == 2:
-                        question = Questions.objects.get(id=newAnswerQuestion.answerQuestionId)
-                        if newAnswerQuestions[index]['answer'] == question.key:
-                            myScore += question.score
-                            newAnswerQuestion.thisScore = question.score
-                        elif newAnswerQuestions[index]['answer'] in question.key:
-                            myScore += question.score//2
-                            newAnswerQuestion.thisScore = question.score//2
+                    questionParam = []
+                    questions = Questions.objects.filter(questionnaireId=params.get("questionnaireId"))
+                    for question in questions:
+                        if question.questionTypeId == 1 or question.questionTypeId == 5:
+                            options = Options.objects.filter(questionId=question.id)
+                            optionParam = []
+                            for option in options:
+                                optionParam.append({"optionTitle":option.optionContent,
+                                                    "selectNumber":option.selectNumber})
+                            questionParam.append(optionParam)
                         else:
-                            newAnswerQuestion.thisScore = 0
-                        choiceQuestionScore += question.score
-                        newAnswerQuestion.save()
-                    if Questionnaire.questionnaireType == 4:
-                        newOption1.selectNumber += 1
-                        newOption1.save()
-                    # 报名问卷 限额
-                    elif Questionnaire.questionnaireType == 3 and newOption.limitNumber is True:
-                        if newOption1.currentQuota <= 0:
-                            return JsonResponse({
-                                "status": 300,
-                                "result": newOption1.optionContent + "名额已满！"
-                            })
-                        newOption1.currentQuota -= 1
-                        newOption1.save()
-                    newAnswerOption.save()
+                            optionParam = []
+                            optionParam.append({"optionTitle":"mua",
+                                                "selectNumber":-1})
+                            questionParam.append(optionParam)
+                    return JsonResponse({
+                        "status": 200,
+                        "result": "提交问卷成功",
+                        "data":questionParam
+                    })
 
 
-            elif newAnswerQuestion.questionTypeId == 2:
-                newAnswerOption = AnswerOptions()
-                newAnswerOption.optionType = 2;
-                newAnswerOption.optionContent = 1
-                newAnswerOption.answerOptionOrder = 1
-                newAnswerOption.completionContent = newAnswerQuestions[index]['answer']
-                newAnswerOption.answerQuestionId = newAnswerQuestion.id
-                # newAnswerOption.answerOptionId = Options.objects.get(questionId=newAnswerQuestion.answerQuestionId,
-                #                                                      ).id
-                newAnswerOption.answerOptionId = -1
-                newAnswerOption.save()
-            elif newAnswerQuestion.questionTypeId == 3:
-                newAnswerOption = AnswerOptions()
-                newAnswerOption.optionType = 3;
-                newAnswerOption.optionContent = 1
-                newAnswerOption.answerOptionOrder = 1
-                newAnswerOption.optionScore = newAnswerQuestions[index]['answer']
-                newAnswerOption.answerQuestionId = newAnswerQuestion.id
-                # newAnswerOption.answerOptionId = Options.objects.get(questionId=newAnswerQuestion.answerQuestionId,
-                #                                                      ).id
-                newAnswerOption.answerOptionId = -1
-                newAnswerOption.save()
-            elif newAnswerQuestion.questionTypeId == 4:
-                newAnswerOption = AnswerOptions()
-                newAnswerOption.optionType = 3;
-                newAnswerOption.optionContent = 1
-                newAnswerOption.answerOptionOrder = 1
-                newAnswerOption.optionScore = newAnswerQuestions[index]['answer']
-                newAnswerOption.optionScoreText = newAnswerQuestions[index]['comment']
-                newAnswerOption.answerQuestionId = newAnswerQuestion.id
-                # newAnswerOption.answerOptionId = Options.objects.get(questionId=newAnswerQuestion.answerQuestionId,
-                #                                                      ).id
-                newAnswerOption.answerOptionId = -1
-                newAnswerOption.save()
-
-        if Questionnaire.questionnaireType == 2:
-            return JsonResponse({
-                "status" : 200,
-                "result" : "提交问卷成功",
-                "totalChoiceScore":choiceQuestionScore,
-                "myChoiceScore":myScore
-            })
-        elif Questionnaire.questionnaireType == 4:
-            questionParam = []
-            questions = Questions.objects.filter(questionnaireId=params.get("questionnaireId"))
-            for question in questions:
-                if question.questionTypeId == 1 or question.questionTypeId == 5:
-                    options = Options.objects.filter(questionId=question.id)
-                    optionParam = []
-                    for option in options:
-                        optionParam.append({"optionTitle":option.optionContent,
-                                            "selectNumber":option.selectNumber})
-                    questionParam.append(optionParam)
                 else:
-                    optionParam = []
-                    optionParam.append({"optionTitle":"mua",
-                                        "selectNumber":-1})
-                    questionParam.append(optionParam)
+                    return JsonResponse({
+                    "status" : 200,
+                    "result" : "提交问卷成功"
+                })
+            else:
+                return JsonResponse({
+                    'status':400,
+                    'result':"请求方式错误"
+                })
+        except Exception as e:
+            transaction.savepoint_rollback(save_id)
             return JsonResponse({
-                "status": 200,
-                "result": "提交问卷成功",
-                "data":questionParam
+                "status":300,
+                "result":sys.exc_info()
             })
-
-
-        else:
-            return JsonResponse({
-            "status" : 200,
-            "result" : "提交问卷成功"
-        })
-    else:
-        return JsonResponse({
-            'status':400,
-            'result':"请求方式错误"
-        })
 
 
 # 考试问卷评分
