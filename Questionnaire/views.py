@@ -287,6 +287,52 @@ def getQuestionAnswer(request):
             "result": "请求方式错误"
         })
 
+# 获得每个人的答卷
+def getEveryOneAnswer(request):
+    if request.method == 'POST':
+        params = json.loads(request.body)
+        questionnaireId = params.get("questionnaireId")
+        Questionnaire = QuestionnaireInformation.objects.get(id = questionnaireId)
+        data = []
+        answerQuestionnaires = AnswerQuestionnaire.objects.filter(questionnaireId=Questionnaire.id)
+
+        for answerQuestionnaire in answerQuestionnaires:
+            answers = []
+            if Questionnaire.questionnaireType == 2:
+                answers.append({"score":answerQuestionnaire.myScore})
+            answerQuestions = AnswerQuestions.objects.filter(answerQuestionnaireId=answerQuestionnaire.id)
+            for answerQuestion in answerQuestions:
+                question = Questions.objects.get(id = answerQuestion.answerQuestionId)
+                answerOption = AnswerOptions.objects.get(answerQuestionId=answerQuestion.id)
+                if answerQuestion.questionTypeId == 1 or answerQuestion.questionTypeId == 5:
+
+                    option = Options.objects.get(id = answerOption.answerOptionId)
+
+                    answers.append({
+                        "question": question.questionTitle,
+                        "answer":answerOption.optionContent,
+                        "option":option.optionContent
+                    })
+                elif answerQuestion.questionTypeId == 2:
+                    answers.append({
+                        "question": question.questionTitle,
+                        "answer": answerQuestion.answerText,
+                    })
+                else:
+                    answers.append({
+                        "question": question.questionTitle,
+                        "answer":answerOption.optionScore,
+                        "comment":answerOption.optionScoreText
+                    })
+            data.append(answers)
+        return JsonResponse({
+            "status":200,
+            "result":"获取成功",
+            "data":data
+        })
+
+
+
 
 # 删除问卷
 def deleteQuestionnaire(request):
@@ -533,6 +579,8 @@ def submitQuestionnaire(request):
                 answer = newAnswerQuestions[index]['answer']
                 answerAmount = len(answer)
                 for i in range(0,answerAmount):
+                    newOption1 = Options.objects.get(questionId=newAnswerQuestion.answerQuestionId,
+                                                    optionOrder=i+1)
                     newAnswerOption = AnswerOptions()
                     newAnswerOption.optionType = 1;
                     newAnswerOption.optionContent = newAnswerQuestions[index]['answer']
@@ -554,8 +602,8 @@ def submitQuestionnaire(request):
                         choiceQuestionScore += question.score
                         newAnswerQuestion.save()
                     if Questionnaire.questionnaireType == 4:
-                        newOption.selectNumber += 1
-                        newOption.save()
+                        newOption1.selectNumber += 1
+                        newOption1.save()
                     # 报名问卷 限额
                     elif Questionnaire.questionnaireType == 3 and newOption.limitNumber is True:
                         newOption.currentQuota -= 1
@@ -615,6 +663,11 @@ def submitQuestionnaire(request):
                     for option in options:
                         optionParam.append({"optionTitle":option.optionContent,
                                             "selectNumber":option.selectNumber})
+                    questionParam.append(optionParam)
+                else:
+                    optionParam = []
+                    optionParam.append({"optionTitle":"mua",
+                                        "selectNumber":-1})
                     questionParam.append(optionParam)
             return JsonResponse({
                 "status": 200,
