@@ -518,17 +518,17 @@ def submitQuestionnaire(request):
         choiceQuestionScore = 0
         myScore = 0
         #     筛查是否存在满额选项
-        if Questionnaire.questionnaireType == 3:
-            questions = Questions.objects.filter(questionnaireId=params.get("questionnaireId"))
-            for question in questions:
-                if question.questionTypeId == 1 or question.questionTypeId == 5:
-                    options = Options.objects.filter(questionId=question.id)
-                    for option in options:
-                        if option.limitNumber is True and option.currentQuota <=0:
-                            return JsonResponse({
-                                "status":300,
-                                "result":"选项"+option.optionContent+"名额已满！"
-                            })
+        # if Questionnaire.questionnaireType == 3:
+        #     questions = Questions.objects.filter(questionnaireId=params.get("questionnaireId"))
+        #     for question in questions:
+        #         if question.questionTypeId == 1 or question.questionTypeId == 5:
+        #             options = Options.objects.filter(questionId=question.id)
+        #             for option in options:
+        #                 if option.limitNumber is True and option.currentQuota <=0:
+        #                     return JsonResponse({
+        #                         "status":300,
+        #                         "result":"选项"+option.optionContent+"名额已满！"
+        #                     })
 
         Questionnaire.save()
         answerQuestionnaire.save()
@@ -567,9 +567,14 @@ def submitQuestionnaire(request):
                     newAnswerQuestion.save()
                 # 报名问卷 限额
                 elif Questionnaire.questionnaireType == 3 and newOption.limitNumber is True:
+                    if newOption.currentQuota <= 0:
+                        return JsonResponse({
+                            "status":300,
+                            "result":newOption.optionContent+"名额已满！"
+                        })
                     newOption.currentQuota -= 1
                     newOption.save()
-                if Questionnaire.questionnaireType == 4:
+                elif Questionnaire.questionnaireType == 4:
                     newOption.selectNumber += 1
                     newOption.save()
 
@@ -580,7 +585,7 @@ def submitQuestionnaire(request):
                 answerAmount = len(answer)
                 for i in range(0,answerAmount):
                     newOption1 = Options.objects.get(questionId=newAnswerQuestion.answerQuestionId,
-                                                    optionOrder=i+1)
+                                                    optionOrder=newAnswerQuestions[index]['answer'][i])
                     newAnswerOption = AnswerOptions()
                     newAnswerOption.optionType = 1;
                     newAnswerOption.optionContent = newAnswerQuestions[index]['answer']
@@ -606,8 +611,13 @@ def submitQuestionnaire(request):
                         newOption1.save()
                     # 报名问卷 限额
                     elif Questionnaire.questionnaireType == 3 and newOption.limitNumber is True:
-                        newOption.currentQuota -= 1
-                        newOption.save()
+                        if newOption1.currentQuota <= 0:
+                            return JsonResponse({
+                                "status": 300,
+                                "result": newOption1.optionContent + "名额已满！"
+                            })
+                        newOption1.currentQuota -= 1
+                        newOption1.save()
                     newAnswerOption.save()
 
 
