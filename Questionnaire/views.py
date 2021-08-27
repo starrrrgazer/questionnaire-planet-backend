@@ -650,7 +650,11 @@ def saveQuestionnaire(request):
             )
             if questionnaireType == 2:
                 questionnaire.totalScore = information.get("totalScore")
-                questionnaire.lastEndTime = information.get('lastEndTime')
+            lastEndTime = information.get('lastEndTime')
+            if lastEndTime is None:
+                pass
+            else:
+                questionnaire.lastEndTime = lastEndTime
             questionnaire.save()
             questionnaireId = questionnaire.id
             i = 1
