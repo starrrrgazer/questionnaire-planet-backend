@@ -313,7 +313,8 @@ def getEveryOneAnswer(request):
                     answers.append({
                         "question": question.questionTitle,
                         "answer":answerOptions[0].optionContent,
-                        "option":option.optionContent
+                        "option":option.optionContent,
+                        "questionType":question.questionTypeId
                     })
                 elif answerQuestion.questionTypeId == 5:
                     for answerOption in answerOptions:
@@ -321,18 +322,21 @@ def getEveryOneAnswer(request):
                         answers.append({
                             "question": question.questionTitle,
                             "answer": answerOption.optionContent,
-                            "option": option.optionContent
+                            "option": option.optionContent,
+                            "questionType": question.questionTypeId
                         })
                 elif answerQuestion.questionTypeId == 2:
                     answers.append({
                         "question": question.questionTitle,
                         "answer": answerQuestion.answerText,
+                        "questionType": question.questionTypeId,
                     })
                 else:
                     answers.append({
                         "question": question.questionTitle,
                         "answer":answerOptions[0].optionScore,
-                        "comment":answerOptions[0].optionScoreText
+                        "comment":answerOptions[0].optionScoreText,
+                        "questionType": question.questionTypeId
                     })
             data.append(answers)
         return JsonResponse({
