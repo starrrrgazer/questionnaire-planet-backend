@@ -988,10 +988,11 @@ def copyQuestionnaire(request):
     if request.method == 'POST':
         req = json.loads(request.body.decode())
         questionnaireId = req.get('questionnaireId')
+        questionnaireTitle = req.get('questionnaireTitle')
         oldQuestionnaire = QuestionnaireInformation.objects.get(id=questionnaireId)
         newQuestionnaire = QuestionnaireInformation(
             authorId=oldQuestionnaire.authorId,
-            questionnaireTitle=oldQuestionnaire.questionnaireTitle + "-副本",
+            questionnaireTitle=questionnaireTitle,
             questionnaireInformation=oldQuestionnaire.questionnaireInformation,
             maxRecovery=oldQuestionnaire.maxRecovery,
             questionAmount=oldQuestionnaire.questionAmount,
