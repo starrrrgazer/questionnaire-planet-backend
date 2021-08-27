@@ -468,9 +468,9 @@ def submitQuestionnaire(request):
                     "status":302,
                     "result":"请勿重复答卷"
                 })
-            # 选择题得分
-            choiceQuestionScore = 0
-            myScore = 0
+        # 选择题得分
+        choiceQuestionScore = 0
+        myScore = 0
         #     筛查是否存在满额选项
         if Questionnaire.questionnaireType == 3:
             questions = Questions.objects.filter(questionnaireId=params.get("questionnaireId"))
@@ -522,6 +522,9 @@ def submitQuestionnaire(request):
                 # 报名问卷 限额
                 elif Questionnaire.questionnaireType == 3 and newOption.limitNumber is True:
                     newOption.currentQuota -= 1
+                    newOption.save()
+                if Questionnaire.questionnaireType == 4:
+                    newOption.selectNumber += 1
                     newOption.save()
 
 
@@ -602,6 +605,24 @@ def submitQuestionnaire(request):
                 "totalChoiceScore":choiceQuestionScore,
                 "myChoiceScore":myScore
             })
+        elif Questionnaire.questionnaireType == 4:
+            questionParam = []
+            questions = Questions.objects.filter(questionnaireId=params.get("questionnaireId"))
+            for question in questions:
+                if question.questionTypeId == 1 or question.questionTypeId == 5:
+                    options = Options.objects.filter(questionId=question.id)
+                    optionParam = []
+                    for option in options:
+                        optionParam.append({"optionTitle":option.optionContent,
+                                            "selectNumber":option.selectNumber})
+                    questionParam.append(optionParam)
+            return JsonResponse({
+                "status": 200,
+                "result": "提交问卷成功",
+                "data":questionParam
+            })
+
+
         else:
             return JsonResponse({
             "status" : 200,
