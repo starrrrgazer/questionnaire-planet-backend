@@ -893,6 +893,11 @@ def editQuestionnaire(request):
                 questionnaire.insertQuestionNumber = information.get('insertQuestionNumber')
                 questionnaire.outOfOrder = information.get('outOfOrder')
                 questionnaire.questionnaireType = questionnaireType
+                lastEndTime = information.get('lastEndTime')
+                if lastEndTime is None:
+                    pass
+                else:
+                    questionnaire.lastEndTime = lastEndTime
                 questionnaire.save()
                 questionnaireId = oldQuestionnaireId
                 i = 1
@@ -913,6 +918,7 @@ def editQuestionnaire(request):
                     if questionnaireType == 2:
                         question.score = problem.get('score')
                         question.key = problem.get('key')
+
                     question.save()
                     i = i + 1
                     questionId = question.id
