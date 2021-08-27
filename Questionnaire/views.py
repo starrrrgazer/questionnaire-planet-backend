@@ -305,16 +305,24 @@ def getEveryOneAnswer(request):
             answerQuestions = AnswerQuestions.objects.filter(answerQuestionnaireId=answerQuestionnaire.id)
             for answerQuestion in answerQuestions:
                 question = Questions.objects.get(id = answerQuestion.answerQuestionId)
-                answerOption = AnswerOptions.objects.get(answerQuestionId=answerQuestion.id)
-                if answerQuestion.questionTypeId == 1 or answerQuestion.questionTypeId == 5:
+                answerOptions = AnswerOptions.objects.filter(answerQuestionId=answerQuestion.id)
+                if answerQuestion.questionTypeId == 1 :
 
-                    option = Options.objects.get(id = answerOption.answerOptionId)
+                    option = Options.objects.get(id = answerOptions[0].answerOptionId)
 
                     answers.append({
                         "question": question.questionTitle,
-                        "answer":answerOption.optionContent,
+                        "answer":answerOptions[0].optionContent,
                         "option":option.optionContent
                     })
+                elif answerQuestion.questionTypeId == 5:
+                    for answerOption in answerOptions:
+                        option = Options.objects.get(id=answerOption.answerOptionId)
+                        answers.append({
+                            "question": question.questionTitle,
+                            "answer": answerOption.optionContent,
+                            "option": option.optionContent
+                        })
                 elif answerQuestion.questionTypeId == 2:
                     answers.append({
                         "question": question.questionTitle,
@@ -323,8 +331,8 @@ def getEveryOneAnswer(request):
                 else:
                     answers.append({
                         "question": question.questionTitle,
-                        "answer":answerOption.optionScore,
-                        "comment":answerOption.optionScoreText
+                        "answer":answerOptions[0].optionScore,
+                        "comment":answerOptions[0].optionScoreText
                     })
             data.append(answers)
         return JsonResponse({
@@ -725,6 +733,7 @@ def markQuestionnaire(request):
             "result": "评分成功",
             "totalScore": totalScore
         })
+
 
 # 保存问卷（创建问卷）
 def saveQuestionnaire(request):
@@ -1303,7 +1312,3 @@ def searchQuestionnaire(request):
             "result":"查询成功",
             "data":questionnaireList
         })
-
-
-
-
