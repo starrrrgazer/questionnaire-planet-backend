@@ -212,6 +212,7 @@ def getAnswer(request):
         questions = Questions.objects.filter(questionnaireId=questionnaireId)
         answerQuestionnaires = AnswerQuestionnaire.objects.filter(questionnaireId = questionnaireId)
         count=0;
+        k = 'A'
         for question in questions :
             params.append({'题目':question.questionTitle})
             i = 1
@@ -220,14 +221,22 @@ def getAnswer(request):
                 if question.questionTypeId == 1  or question.questionTypeId == 6:
                     AnswerQuestion = AnswerQuestions.objects.get(answerQuestionId=question.id,answerQuestionnaireId=answerQuestionnaire.id)
                     AnswerOption = AnswerOptions.objects.get(answerQuestionId=AnswerQuestion.id)
-                    params[count]['answer'+str(i)] =AnswerOption.optionContent
+                    # params[count]['answer'+str(i)] =AnswerOption.optionContent
+                    params[count]['answer' + str(i)] = chr(ord(k)+int(AnswerOption.optionContent)-1) +":"+ \
+                    Options.objects.get(questionId=question.id,optionOrder=AnswerOption.optionContent).optionContent
                     i+=1
                 if question.questionTypeId == 5:
                     AnswerQuestion = AnswerQuestions.objects.get(answerQuestionId=question.id,
                                                                  answerQuestionnaireId=answerQuestionnaire.id)
                     AnswerOptions1 = AnswerOptions.objects.filter(answerQuestionId=AnswerQuestion.id)
                     AnswerOption = AnswerOptions1[0]
-                    params[count]['answer' + str(i)] = AnswerOption.optionContent
+                    params[count]['answer' + str(i)] = ''
+                    for j in range(0,len(AnswerOption.optionContent)):
+                        params[count]['answer' + str(i)] += chr(ord(k) + int(AnswerOption.optionContent[j]) - 1)+":"+ \
+                                                            Options.objects.get(questionId=question.id,
+                                                                                optionOrder=AnswerOption.optionContent[j]).optionContent
+                        if j != len(AnswerOption.optionContent)-1:
+                            params[count]['answer' + str(i)] += ","
                     i += 1
                 if question.questionTypeId == 2:
                     AnswerQuestion = AnswerQuestions.objects.get(answerQuestionId=question.id,
