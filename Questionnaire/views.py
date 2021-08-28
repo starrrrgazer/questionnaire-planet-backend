@@ -316,6 +316,15 @@ def getEveryOneAnswer(request):
                         "option":option.optionContent,
                         "questionType":QuestionType.objects.get(id = question.questionTypeId).questionTypeName
                     })
+                    for index in range(0,question.choiceAmount):
+                        if index == 0:
+                            option = Options.objects.get(questionId=question.id,optionOrder=index+1)
+                            answers[0]['allOptions'] = option.optionContent
+                        else:
+                            option = Options.objects.get(questionId=question.id, optionOrder=index+1)
+                            answers.append({
+                                "allOptions":option.optionContent
+                            })
                 elif answerQuestion.questionTypeId == 5:
                     index = 0
                     for answerOption in answerOptions:
@@ -325,11 +334,21 @@ def getEveryOneAnswer(request):
                                 "question": question.questionTitle,
                                 "answer": answerOption.optionContent,
                                 "option": option.optionContent,
-                                "questionType": QuestionType.objects.get(id=question.questionTypeId).questionTypeName
+                                "questionType": QuestionType.objects.get(id=question.questionTypeId).questionTypeName,
+
                             })
                             index += 1
                         else:
                             answers[len(answers)-1]['option'] = answers[len(answers)-1]['option'] +","+ option.optionContent
+                    for index in range(0,question.choiceAmount):
+                        if index == 0:
+                            option = Options.objects.get(questionId=question.id,optionOrder=index+1)
+                            answers[0]['allOptions'] = option.optionContent
+                        else:
+                            option = Options.objects.get(questionId=question.id, optionOrder=index+1)
+                            answers.append({
+                                "allOptions":option.optionContent
+                            })
                 elif answerQuestion.questionTypeId == 2:
                     answers.append({
                         "question": question.questionTitle,
@@ -523,7 +542,6 @@ def submitQuestionnaire(request):
                 answerQuestionnaire.questionnaireId = params.get("questionnaireId")
                 Questionnaire = QuestionnaireInformation.objects.get(id = params.get("questionnaireId"))
                 Questionnaire.recoveryAmount += 1;
-
 
                 answerQuestionnaire.commitTime = datetime.datetime.now()
 
