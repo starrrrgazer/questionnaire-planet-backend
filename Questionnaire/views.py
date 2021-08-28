@@ -317,14 +317,19 @@ def getEveryOneAnswer(request):
                         "questionType":QuestionType.objects.get(id = question.questionTypeId).questionTypeName
                     })
                 elif answerQuestion.questionTypeId == 5:
+                    index = 0
                     for answerOption in answerOptions:
                         option = Options.objects.get(id=answerOption.answerOptionId)
-                        answers.append({
-                            "question": question.questionTitle,
-                            "answer": answerOption.optionContent,
-                            "option": option.optionContent,
-                            "questionType": QuestionType.objects.get(id = question.questionTypeId).questionTypeName
-                        })
+                        if index == 0:
+                            answers.append({
+                                "question": question.questionTitle,
+                                "answer": answerOption.optionContent,
+                                "option": option.optionContent,
+                                "questionType": QuestionType.objects.get(id=question.questionTypeId).questionTypeName
+                            })
+                            index += 1
+                        else:
+                            answers[len(answers)-1]['option'] = answers[len(answers)-1]['option'] +","+ option.optionContent
                 elif answerQuestion.questionTypeId == 2:
                     answers.append({
                         "question": question.questionTitle,
@@ -600,7 +605,7 @@ def submitQuestionnaire(request):
                             newAnswerOption.answerOptionId = Options.objects.get(questionId=newAnswerQuestion.answerQuestionId,
                                                                                  optionOrder=newAnswerOption.answerOptionOrder).id
                             # 考试问卷 多选题评分
-                            if Questionnaire.questionnaireType == 2:
+                            if Questionnaire.questionnaireType == 2 and i == 0:
                                 question = Questions.objects.get(id=newAnswerQuestion.answerQuestionId)
                                 if newAnswerQuestions[index]['answer'] == question.key:
                                     myScore += question.score
