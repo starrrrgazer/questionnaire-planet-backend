@@ -40,6 +40,8 @@ class QuestionnaireInformation(models.Model):
     outOfOrder = models.BooleanField(default=False)
     # 是否插入题号
     insertQuestionNumber = models.BooleanField(default=True)
+#     考试时间
+    examTime = models.IntegerField(null=True)
 
 # 问卷中的题目
 class Questions(models.Model):

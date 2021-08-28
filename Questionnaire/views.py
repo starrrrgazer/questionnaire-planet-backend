@@ -814,6 +814,7 @@ def saveQuestionnaire(request):
         )
         if questionnaireType == 2:
             questionnaire.totalScore = information.get("totalScore")
+            questionnaire.examTime = information.get("examTime")
         lastEndTime = information.get('lastEndTime')
         if lastEndTime is None:
             pass
@@ -1305,7 +1306,7 @@ def getAnswerQuestionnaireInterface(request):
                 'questionnaireType': questionnaire.questionnaireType,
                 'totalScore': questionnaire.totalScore,
                 'questionList': questionList,
-
+                'examtime':questionnaire.examTime,
                 'status': 200,
                 'result': "获取问卷信息成功"
             }
