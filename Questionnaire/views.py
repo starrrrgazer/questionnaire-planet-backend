@@ -308,8 +308,13 @@ def getEveryOneAnswer(request):
 
         for answerQuestionnaire in answerQuestionnaires:
             answers = []
-            if Questionnaire.questionnaireType == 2:
-                answers.append({"score":answerQuestionnaire.myScore})
+            flag = True
+            # answers.append({"commitTime":answerQuestionnaire.commitTime,
+            #                 "answerAmount":Questionnaire.recoveryAmount,
+            #                 "questionAmount":Questionnaire.questionAmount
+            #                 })
+            # if Questionnaire.questionnaireType == 2:
+            #     answers[0]['score']=answerQuestionnaire.myScore
             answerQuestions = AnswerQuestions.objects.filter(answerQuestionnaireId=answerQuestionnaire.id)
             for answerQuestion in answerQuestions:
                 questionAnswer = []
@@ -373,6 +378,13 @@ def getEveryOneAnswer(request):
                         "comment":answerOptions[0].optionScoreText,
                         "questionType": QuestionType.objects.get(id = question.questionTypeId).questionTypeName
                     })
+                if flag:
+                    flag = False
+                    questionAnswer[0]['commitTime'] = answerQuestionnaire.commitTime
+                    questionAnswer[0]['answerAmount'] = Questionnaire.recoveryAmount
+                    questionAnswer[0]['questionAmount'] = Questionnaire.questionAmount
+                    if Questionnaire.questionnaireType == 2:
+                        questionAnswer[0]['score'] = answerQuestionnaire.myScore
                 answers.append(questionAnswer)
             data.append(answers)
         return JsonResponse({
