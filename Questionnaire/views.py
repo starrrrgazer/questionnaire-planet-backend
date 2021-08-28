@@ -304,33 +304,34 @@ def getEveryOneAnswer(request):
                 answers.append({"score":answerQuestionnaire.myScore})
             answerQuestions = AnswerQuestions.objects.filter(answerQuestionnaireId=answerQuestionnaire.id)
             for answerQuestion in answerQuestions:
+                questionAnswer = []
                 question = Questions.objects.get(id = answerQuestion.answerQuestionId)
                 answerOptions = AnswerOptions.objects.filter(answerQuestionId=answerQuestion.id)
                 if answerQuestion.questionTypeId == 1 :
 
                     option = Options.objects.get(id = answerOptions[0].answerOptionId)
 
-                    answers.append({
+                    questionAnswer.append({
                         "question": question.questionTitle,
                         "answer":answerOptions[0].optionContent,
                         "option":option.optionContent,
                         "questionType":QuestionType.objects.get(id = question.questionTypeId).questionTypeName
-                    })
+                    });
                     for index in range(0,question.choiceAmount):
                         if index == 0:
                             option = Options.objects.get(questionId=question.id,optionOrder=index+1)
-                            answers[0]['allOptions'] = option.optionContent
+                            questionAnswer[0]['allOptions'] = option.optionContent
                         else:
                             option = Options.objects.get(questionId=question.id, optionOrder=index+1)
-                            answers.append({
+                            questionAnswer.append({
                                 "allOptions":option.optionContent
-                            })
+                            });
                 elif answerQuestion.questionTypeId == 5:
                     index = 0
                     for answerOption in answerOptions:
                         option = Options.objects.get(id=answerOption.answerOptionId)
                         if index == 0:
-                            answers.append({
+                            questionAnswer.append({
                                 "question": question.questionTitle,
                                 "answer": answerOption.optionContent,
                                 "option": option.optionContent,
@@ -339,29 +340,30 @@ def getEveryOneAnswer(request):
                             })
                             index += 1
                         else:
-                            answers[len(answers)-1]['option'] = answers[len(answers)-1]['option'] +","+ option.optionContent
+                            questionAnswer[len(questionAnswer)-1]['option'] = questionAnswer[len(questionAnswer)-1]['option'] +","+ option.optionContent
                     for index in range(0,question.choiceAmount):
                         if index == 0:
                             option = Options.objects.get(questionId=question.id,optionOrder=index+1)
-                            answers[0]['allOptions'] = option.optionContent
+                            questionAnswer[0]['allOptions'] = option.optionContent
                         else:
                             option = Options.objects.get(questionId=question.id, optionOrder=index+1)
-                            answers.append({
+                            questionAnswer.append({
                                 "allOptions":option.optionContent
                             })
                 elif answerQuestion.questionTypeId == 2:
-                    answers.append({
+                    questionAnswer.append({
                         "question": question.questionTitle,
                         "answer": answerQuestion.answerText,
                         "questionType": QuestionType.objects.get(id = question.questionTypeId).questionTypeName
                     })
                 else:
-                    answers.append({
+                    questionAnswer.append({
                         "question": question.questionTitle,
                         "answer":answerOptions[0].optionScore,
                         "comment":answerOptions[0].optionScoreText,
                         "questionType": QuestionType.objects.get(id = question.questionTypeId).questionTypeName
                     })
+                answers.append(questionAnswer)
             data.append(answers)
         return JsonResponse({
             "status":200,
