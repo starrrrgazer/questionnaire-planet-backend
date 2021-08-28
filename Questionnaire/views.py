@@ -751,9 +751,10 @@ def submitQuestionnaire(request):
                 })
         except Exception as e:
             transaction.savepoint_rollback(save_id)
+            print(e)
             return JsonResponse({
                 "status":300,
-                "result":sys.exc_info()
+                "result":"提交问卷失败"
             })
 
 
@@ -1296,6 +1297,15 @@ def getAnswerQuestionnaireInterface(request):
                 )
             if questionOutOfOrder == True:
                 random.shuffle(questionList)
+            nowTime = datetime.datetime.now().timestamp()
+            lastEndTime1 = questionnaire.lastEndTime
+            if lastEndTime1 is None or lastEndTime1.timestamp() > nowTime:
+                if questionnaire.startTime is not None:
+                    isStarted = True
+                else:
+                    isStarted = False
+            else:
+                isStarted = False
             res = {
                 'questionnaireTitle': questionnaire.questionnaireTitle,
                 'questionnaireInformation': questionnaire.questionnaireInformation,
@@ -1308,7 +1318,8 @@ def getAnswerQuestionnaireInterface(request):
                 'questionList': questionList,
                 'examtime':questionnaire.examTime,
                 'status': 200,
-                'result': "获取问卷信息成功"
+                'result': "获取问卷信息成功",
+                "isStarted":isStarted
             }
             return JsonResponse(res)
     else:
@@ -1363,4 +1374,17 @@ def searchQuestionnaire(request):
             "status":200,
             "result":"查询成功",
             "data":questionnaireList
+        })
+
+
+# 通过id号判断问卷类型
+def getQuestionnaireType(request):
+    if request.method == 'POST':
+        params = json.loads(request.body)
+        id = params.get("questionnaireId")
+        questionnaire = QuestionnaireInformation.objects.get(id =id )
+        return JsonResponse({
+            "status":200,
+            "result":"获取成功",
+            "type":questionnaire.questionnaireType
         })

@@ -48,13 +48,10 @@ def register(request):
         newPassword = result.get("password");
         newEmail = result.get("Email");
         newPhone = result.get("phone");
-        newSFID = result.get("sfID");
-        if len(user.objects.filter(username=newUsername))==0 and \
-                len(user.objects.filter(email = newEmail))==0 and len(user.objects.filter(phone=newPhone))==0:
+        if len(user.objects.filter(username=newUsername))==0 and len(user.objects.filter(phone=newPhone))==0:
             newUser = user();
             newUser.username = newUsername;
             newUser.password = newPassword;
-            newUser.sfID = newSFID;
             newUser.email = newEmail;
             newUser.phone = newPhone
             user.save(newUser);
@@ -83,10 +80,12 @@ def getMyInfo(request):
             return JsonResponse({
                 "status":200,
                 "result":"请求成功",
-                "email":myuser.email,
-                "username":myuser.username,
-                "phone":myuser.phone,
-                "uid":myuser.id,
+                "data":{
+                    "email": myuser.email,
+                    "username": myuser.username,
+                    "phone": myuser.phone,
+                    "uid": myuser.id,
+                }
             })
 
 
@@ -108,11 +107,9 @@ def retrievePassword(request):
         params = json.loads(request.body.decode())
         username = params.get("username")
         phone = params.get("phone")
-        email = params.get("email")
         try:
             user1 = user.objects.get(username=username,
-                                     phone=phone,
-                                     email=email)
+                                     phone=phone)
         except Exception:
             return JsonResponse({
                 "status":400,
