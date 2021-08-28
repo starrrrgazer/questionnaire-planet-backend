@@ -330,17 +330,19 @@ def getEveryOneAnswer(request):
                     index = 0
                     for answerOption in answerOptions:
                         option = Options.objects.get(id=answerOption.answerOptionId)
+                        options = []
+                        options.append(option.optionContent)
                         if index == 0:
                             questionAnswer.append({
                                 "question": question.questionTitle,
                                 "answer": answerOption.optionContent,
-                                "option": option.optionContent,
+                                "option": options,
                                 "questionType": QuestionType.objects.get(id=question.questionTypeId).questionTypeName,
 
                             })
                             index += 1
                         else:
-                            questionAnswer[len(questionAnswer)-1]['option'] = questionAnswer[len(questionAnswer)-1]['option'] +","+ option.optionContent
+                            questionAnswer[len(questionAnswer)-1]['option'].append(option.optionContent)
                     for index in range(0,question.choiceAmount):
                         if index == 0:
                             option = Options.objects.get(questionId=question.id,optionOrder=index+1)

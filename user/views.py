@@ -137,3 +137,16 @@ def changePassword(request):
             "status":200,
             "result":"修改密码成功"
         })
+
+
+def changePhoneNumber(request):
+    if request.method == 'POST':
+        params = json.loads(request.body.decode())
+        id = params.get("authorId")
+        user1 = user.objects.get(id = id)
+        user1.phone = params.get("newPhone")
+        user1.save()
+        return JsonResponse({
+            "status": 200,
+            "result": "修改手机号成功"
+        })
