@@ -26,5 +26,6 @@ urlpatterns = [
     path("getAnswerQuestionnaireInterface",views.getAnswerQuestionnaireInterface),
     path("copyQuestionnaire",views.copyQuestionnaire),
     path("getEveryOneAnswer",views.getEveryOneAnswer),
-    path("getQuestionnaireType",views.getQuestionnaireType)
+    path("getQuestionnaireType",views.getQuestionnaireType),
+    path('getClientIp',views.getClientIp)
 ]

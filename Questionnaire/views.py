@@ -941,6 +941,7 @@ def getMyQuestionnaire(request):
                     for questionnaire in questionnaires:
                         questionnaireList.append(
                             {
+                                'questionnaireType': questionnaire.questionnaireType,
                                 'questionnaireId': questionnaire.id,
                                 'questionnaireTitle': questionnaire.questionnaireTitle,
                                 'currenState': questionnaire.currentState,
@@ -1388,3 +1389,11 @@ def getQuestionnaireType(request):
             "result":"获取成功",
             "type":questionnaire.questionnaireType
         })
+
+def getClientIp(request):
+    x_forwarded_for = request.META.get('HTTP_X_FORWARDED_FOR')
+    if x_forwarded_for:
+        ip = x_forwarded_for.split(',')[0]  # 所以这里是真实的ip
+    else:
+        ip = request.META.get('REMOTE_ADDR')  # 这里获得代理ip
+    return JsonResponse({'ip':ip})
