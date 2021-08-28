@@ -1372,4 +1372,4 @@ def getClientIp(request):
         ip = x_forwarded_for.split(',')[0]  # 所以这里是真实的ip
     else:
         ip = request.META.get('REMOTE_ADDR')  # 这里获得代理ip
-    return ip
+    return JsonResponse({'ip':ip})
