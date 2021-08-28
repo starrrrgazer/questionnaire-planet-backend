@@ -211,10 +211,9 @@ def getAnswer(request):
         params = [];
         questions = Questions.objects.filter(questionnaireId=questionnaireId)
         answerQuestionnaires = AnswerQuestionnaire.objects.filter(questionnaireId = questionnaireId)
-        cnt = 1;count=0;
+        count=0;
         for question in questions :
-            params.append({'id':cnt})
-            cnt += 1
+            params.append({'题目':question.questionTitle})
             i = 1
 
             for answerQuestionnaire in answerQuestionnaires:
