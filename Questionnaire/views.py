@@ -481,13 +481,18 @@ def sortByRecoveryAmount(request):
         myData = []
         # Questionnaires = QuestionnaireInformation.objects.all().order_by('-recoveryAmount')
         for questionnaire in Questionnaires:
+            startTime = questionnaire.startTime
+            if startTime == None:
+                pass
+            else:
+                startTime = str(questionnaire.startTime.strftime("%Y-%m-%d %H:%M"))
             myData.append({"id":questionnaire.id,
                            "author":user.objects.get(id = questionnaire.authorId).id,
                            "questionnaireTitle":questionnaire.questionnaireTitle,
                            "content":questionnaire.questionnaireInformation,
                            "setUpTime": str(questionnaire.setUpTime.strftime("%Y-%m-%d %H:%M")),
                            "latestAlterTime":questionnaire.latestAlterTime,
-                           "startTime":str(questionnaire.startTime.strftime("%Y-%m-%d %H:%M")),
+                           "startTime":startTime,
                            "endTime":questionnaire.endTime,
                            "deadline":questionnaire.lastEndTime,
                            "maxRecovery":questionnaire.maxRecovery,
@@ -509,13 +514,18 @@ def sortByStartTime(request):
         myData = []
         # Questionnaires = QuestionnaireInformation.objects.all().order_by('-recoveryAmount')
         for questionnaire in Questionnaires:
+            startTime = questionnaire.startTime
+            if startTime == None:
+                pass
+            else:
+                startTime = str(questionnaire.startTime.strftime("%Y-%m-%d %H:%M"))
             myData.append({"id":questionnaire.id,
                            "author":user.objects.get(id = questionnaire.authorId).id,
                            "title":questionnaire.questionnaireTitle,
                            "content":questionnaire.questionnaireInformation,
                            "setUpTime": str(questionnaire.setUpTime.strftime("%Y-%m-%d %H:%M")),
                            "latestAlterTime":questionnaire.latestAlterTime,
-                           "startTime":str(questionnaire.startTime.strftime("%Y-%m-%d %H:%M")),
+                           "startTime":startTime,
                            "endTime":questionnaire.endTime,
                            "deadline":questionnaire.lastEndTime,
                            "maxRecovery":questionnaire.maxRecovery,
@@ -536,13 +546,18 @@ def sortBySetUpTime(request):
         myData = []
         # Questionnaires = QuestionnaireInformation.objects.all().order_by('-recoveryAmount')
         for questionnaire in Questionnaires:
+            startTime = questionnaire.startTime
+            if startTime == None:
+                pass
+            else:
+                startTime = str(questionnaire.startTime.strftime("%Y-%m-%d %H:%M"))
             myData.append({"id":questionnaire.id,
                            "author":user.objects.get(id = questionnaire.authorId).id,
                            "title":questionnaire.questionnaireTitle,
                            "content":questionnaire.questionnaireInformation,
                            "setUpTime": str(questionnaire.setUpTime.strftime("%Y-%m-%d %H:%M")),
                            "latestAlterTime":questionnaire.latestAlterTime,
-                           "startTime":str(questionnaire.startTime.strftime("%Y-%m-%d %H:%M")),
+                           "startTime":startTime,
                            "endTime":questionnaire.endTime,
                            "deadline":questionnaire.lastEndTime,
                            "maxRecovery":questionnaire.maxRecovery,
@@ -563,13 +578,18 @@ def sortBySetUpTimeDesc(request):
         myData = []
         # Questionnaires = QuestionnaireInformation.objects.all().order_by('-recoveryAmount')
         for questionnaire in Questionnaires:
+            startTime = questionnaire.startTime
+            if startTime == None:
+                pass
+            else:
+                startTime = str(questionnaire.startTime.strftime("%Y-%m-%d %H:%M"))
             myData.append({"id":questionnaire.id,
                            "author":user.objects.get(id = questionnaire.authorId).id,
                            "title":questionnaire.questionnaireTitle,
                            "content":questionnaire.questionnaireInformation,
                            "setUpTime": str(questionnaire.setUpTime.strftime("%Y-%m-%d %H:%M")),
                            "latestAlterTime":questionnaire.latestAlterTime,
-                           "startTime":str(questionnaire.startTime.strftime("%Y-%m-%d %H:%M")),
+                           "startTime":startTime,
                            "endTime":questionnaire.endTime,
                            "deadline":questionnaire.lastEndTime,
                            "maxRecovery":questionnaire.maxRecovery,
@@ -1024,6 +1044,12 @@ def getMyQuestionnaire(request):
                 if questionnaires.exists():
                     questionnaireList = []
                     for questionnaire in questionnaires:
+                        startTime = questionnaire.startTime
+                        print(startTime)
+                        if startTime == None:
+                            pass
+                        else:
+                            startTime = str(questionnaire.startTime.strftime("%Y-%m-%d %H:%M"))
                         questionnaireList.append(
                             {
                                 'questionnaireType': questionnaire.questionnaireType,
@@ -1033,12 +1059,12 @@ def getMyQuestionnaire(request):
                                 'deleted': questionnaire.deleted,
                                 'answerAmount': questionnaire.recoveryAmount,
                                 'setUpTime': str(questionnaire.setUpTime.strftime("%Y-%m-%d %H:%M")),
-                                'startTime': str(questionnaire.startTime.strftime("%Y-%m-%d %H:%M")),
+                                'startTime': startTime,
                                 'latestAlterTime': questionnaire.latestAlterTime,
                                 'lastEndTime': questionnaire.lastEndTime,
                             }
                         )
-                        time = questionnaire.setUpTime
+                        # time = questionnaire.setUpTime
                         # print(time)
                         # print(time.strftime("%Y-%m-%d %H:%M"))
                         # print(str(time.strftime("%Y-%m-%d %H:%M")))
@@ -1472,6 +1498,11 @@ def searchQuestionnaire(request):
                                                                  authorId=authorId)
         questionnaireList = []
         for questionnaire in questionnaires:
+            startTime = questionnaire.startTime
+            if startTime == None:
+                pass
+            else:
+                startTime = str(questionnaire.startTime.strftime("%Y-%m-%d %H:%M"))
             questionnaireList.append(
                 {
                     'questionnaireId': questionnaire.id,
@@ -1480,7 +1511,7 @@ def searchQuestionnaire(request):
                     'deleted': questionnaire.deleted,
                     'answerAmount': questionnaire.recoveryAmount,
                     'setUpTime': str(questionnaire.setUpTime.strftime("%Y-%m-%d %H:%M")),
-                    'startTime': str(questionnaire.startTime.strftime("%Y-%m-%d %H:%M")),
+                    'startTime': startTime,
                     'latestAlterTime': questionnaire.latestAlterTime,
                     'lastEndTime': questionnaire.lastEndTime,
                 }
