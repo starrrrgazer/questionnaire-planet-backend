@@ -625,7 +625,7 @@ def submitQuestionnaire(request):
                             if newOption.currentQuota <= 0:
                                 transaction.savepoint_rollback(save_id)
                                 return JsonResponse({
-                                    "status":300,
+                                    "status":303,
                                     "result":newOption.optionContent+"名额已满！"
                                 })
                             newOption.currentQuota -= 1
@@ -669,7 +669,7 @@ def submitQuestionnaire(request):
                             elif Questionnaire.questionnaireType == 3 and newOption.limitNumber is True:
                                 if newOption1.currentQuota <= 0:
                                     return JsonResponse({
-                                        "status": 300,
+                                        "status": 303,
                                         "result": newOption1.optionContent + "名额已满！"
                                     })
                                 newOption1.currentQuota -= 1
