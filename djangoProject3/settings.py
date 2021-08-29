@@ -28,7 +28,7 @@ SECRET_KEY = 'django-insecure-k^vt!gmilc=x_#_-xj^e^l4-2yu02*m$&fn7szj(r3h4n^c7%s
 # SECURITY WARNING: don't run with debug turned on in production!
 DEBUG = True
 
-ALLOWED_HOSTS = []
+ALLOWED_HOSTS = ['*']
 
 
 REST_FRAMEWORK = {
@@ -101,7 +101,7 @@ DATABASES = {
     'default': {
         'ENGINE': 'django.db.backends.mysql',
         'NAME': 'myproject',
-        'USER': 'root',
+        'USER': 'myproject',
         'PASSWORD':'120329',
         'HOST':'localhost',
         'PORT':'3306'
