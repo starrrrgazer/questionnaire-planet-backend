@@ -1258,7 +1258,9 @@ def getAnswerQuestionnaireInterface(request):
             return JsonResponse({'status': 400, 'result': "找不到该问卷"})
         else:
             questionOutOfOrder = questionnaire.outOfOrder
+            nowType = questionnaire.questionnaireType
             questionList = []
+            myQuestionList = []
             questions = Questions.objects.filter(questionnaireId=questionnaireId).order_by('questionOrder')
             for question in questions:
                 questionId = question.id
@@ -1283,24 +1285,43 @@ def getAnswerQuestionnaireInterface(request):
                     )
                 if optionOutOfOrder == True:
                     random.shuffle(optionList)
-                questionList.append(
-                    {
-                        'questionId': question.id,
-                        'questionTitle': question.questionTitle,
-                        'questionTypeId': question.questionTypeId,
-                        'required': question.required,
-                        'multipleChoice': question.multipleChoice,
-                        'choiceAmount': question.choiceAmount,
-                        'questionOrder': question.questionOrder,
-                        'questionInformation': question.questionInformation,
-                        'outOfOrder': question.outOfOrder,
-                        'score': question.score,
-                        'key': question.key,
-                        'optionList': optionList,
-                    }
-                )
+                if question.questionOrder == 1 or question.questionOrder == 2:
+                    myQuestionList.append(
+                        {
+                            'questionId': question.id,
+                            'questionTitle': question.questionTitle,
+                            'questionTypeId': question.questionTypeId,
+                            'required': question.required,
+                            'multipleChoice': question.multipleChoice,
+                            'choiceAmount': question.choiceAmount,
+                            'questionOrder': question.questionOrder,
+                            'questionInformation': question.questionInformation,
+                            'outOfOrder': question.outOfOrder,
+                            'score': question.score,
+                            'key': question.key,
+                            'optionList': optionList,
+                        }
+                    )
+                else:
+                    questionList.append(
+                        {
+                            'questionId': question.id,
+                            'questionTitle': question.questionTitle,
+                            'questionTypeId': question.questionTypeId,
+                            'required': question.required,
+                            'multipleChoice': question.multipleChoice,
+                            'choiceAmount': question.choiceAmount,
+                            'questionOrder': question.questionOrder,
+                            'questionInformation': question.questionInformation,
+                            'outOfOrder': question.outOfOrder,
+                            'score': question.score,
+                            'key': question.key,
+                            'optionList': optionList,
+                        }
+                    )
             if questionOutOfOrder == True:
                 random.shuffle(questionList)
+            myQuestionList = myQuestionList + questionList
             nowTime = datetime.datetime.now().timestamp()
             lastEndTime1 = questionnaire.lastEndTime
             if lastEndTime1 is None or lastEndTime1.timestamp() > nowTime:
@@ -1322,7 +1343,7 @@ def getAnswerQuestionnaireInterface(request):
                 'outOfOrder': questionnaire.outOfOrder,
                 'questionnaireType': questionnaire.questionnaireType,
                 'totalScore': questionnaire.totalScore,
-                'questionList': questionList,
+                'questionList': myQuestionList,
                 'examtime':questionnaire.examTime,
                 'status': 200,
                 'result': "获取问卷信息成功",
