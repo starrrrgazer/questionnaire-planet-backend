@@ -1078,7 +1078,7 @@ def editQuestionnaire(request):
                     question = Questions(
                         questionnaireId=questionnaireId,
                         questionTitle=problem.get('questionTitle'),
-                        required=problem.get('questionRequired'),
+                        required=problem.get('required'),
                         questionTypeId=problem.get('questionTypeId'),
                         multipleChoice=problem.get('multipleChoice'),
                         choiceAmount=choiceAmount,
@@ -1100,7 +1100,7 @@ def editQuestionnaire(request):
                             op = Options(
                                 questionId=questionId,
                                 optionOrder=j,
-                                required=option.get('optionRequired'),
+                                required=option.get('required'),
                                 optionContent=option.get('optionContent'),
                                 optionType=option.get('optionType'),
                                 optionScore=option.get('optionScore'),
