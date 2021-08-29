@@ -1065,7 +1065,7 @@ def getMyQuestionnaire(request):
                     questionnaireList = []
                     for questionnaire in questionnaires:
                         startTime = questionnaire.startTime
-                        print(startTime)
+                        # print(startTime)
                         if startTime == None:
                             pass
                         else:
