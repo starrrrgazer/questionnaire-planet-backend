@@ -23,6 +23,5 @@ urlpatterns = [
     path('admin/', admin.site.urls),
     path('user/',include("user.urls")),
     path('Questionnaire/',include("Questionnaire.urls")),
-    url(r'^$', TemplateView.as_view(template_name="index.html")),
-    # url(r'^api/', include('backend.urls', namespace='api'))
+    # url(r'^$', TemplateView.as_view(template_name="index.html")),
 ]

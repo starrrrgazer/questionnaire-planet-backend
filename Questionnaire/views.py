@@ -641,7 +641,7 @@ def submitQuestionnaire(request):
                 answerQuestionnaire.commitTime = datetime.datetime.now()
 
                 if Questionnaire.questionnaireType == 2:
-                    answerQuestionnaire.answerId = params.get("examinee")
+                    # answerQuestionnaire.answerId = params.get("examinee")
                     # 防止重复答卷
                     if len(AnswerQuestionnaire.objects.filter(answerId=answerQuestionnaire.answerId,
                                                               questionnaireId=params.get("questionnaireId"))) >=1:
@@ -687,7 +687,7 @@ def submitQuestionnaire(request):
                                     newAnswerQuestion.save()
                                 newAnswerOption.save()
                                 continue
-
+                        # print(newAnswerQuestions[index]['answer'])
                         newAnswerOption.optionContent = newAnswerQuestions[index]['answer']
                         newAnswerOption.answerOptionOrder = newAnswerQuestions[index]['answer']
                         newAnswerOption.answerQuestionId = newAnswerQuestion.id
@@ -699,7 +699,8 @@ def submitQuestionnaire(request):
                         # 考试问卷 选择题评分
                         if Questionnaire.questionnaireType == 2:
                             question = Questions.objects.get(id = newAnswerQuestion.answerQuestionId)
-                            if newAnswerQuestions[index]['answer'] == question.key:
+                            # print(str(newAnswerQuestions[index]['answer']) == str(question.key))
+                            if str(newAnswerQuestions[index]['answer']) == str(question.key) :
                                 myScore += question.score
                                 newAnswerQuestion.thisScore = question.score
                             else:
@@ -751,10 +752,10 @@ def submitQuestionnaire(request):
                             # 考试问卷 多选题评分
                             if Questionnaire.questionnaireType == 2 and i == 0:
                                 question = Questions.objects.get(id=newAnswerQuestion.answerQuestionId)
-                                if newAnswerQuestions[index]['answer'] == question.key:
+                                if str(newAnswerQuestions[index]['answer']) == str(question.key):
                                     myScore += question.score
                                     newAnswerQuestion.thisScore = question.score
-                                elif newAnswerQuestions[index]['answer'] in question.key:
+                                elif str(newAnswerQuestions[index]['answer']) in str(question.key):
                                     myScore += question.score//2
                                     newAnswerQuestion.thisScore = question.score//2
                                 else:
