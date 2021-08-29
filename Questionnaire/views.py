@@ -1006,50 +1006,50 @@ def getMyQuestionnaire(request):
         authorId = req.get('authorId')
         if True:
             res = {}
-            # try:
-            if method == 1:
-                questionnaires = QuestionnaireInformation.objects.filter(authorId=authorId).order_by('setUpTime')
-            elif method == -1:
-                questionnaires = QuestionnaireInformation.objects.filter(authorId=authorId).order_by('-setUpTime')
-            elif method == 2:
-                questionnaires = QuestionnaireInformation.objects.filter(authorId=authorId).order_by('startTime')
-            elif method == -2:
-                questionnaires = QuestionnaireInformation.objects.filter(authorId=authorId).order_by('-startTime')
-            elif method == 3:
-                questionnaires = QuestionnaireInformation.objects.filter(authorId=authorId).order_by('recoveryAmount')
-            elif method == -3:
-                questionnaires = QuestionnaireInformation.objects.filter(authorId=authorId).order_by('-recoveryAmount')
-            else:
-                return JsonResponse({'status': 400, 'result': "排序方法出错"})
-            if questionnaires.exists():
-                questionnaireList = []
-                for questionnaire in questionnaires:
-                    questionnaireList.append(
-                        {
-                            'questionnaireType': questionnaire.questionnaireType,
-                            'questionnaireId': questionnaire.id,
-                            'questionnaireTitle': questionnaire.questionnaireTitle,
-                            'currenState': questionnaire.currentState,
-                            'deleted': questionnaire.deleted,
-                            'answerAmount': questionnaire.recoveryAmount,
-                            'setUpTime': str(questionnaire.setUpTime.strftime("%Y-%m-%d %H:%M")),
-                            'startTime': questionnaire.startTime,
-                            'latestAlterTime': questionnaire.latestAlterTime,
-                            'lastEndTime': questionnaire.lastEndTime,
-                        }
-                    )
-                    time = questionnaire.setUpTime
-                    # print(time)
-                    # print(time.strftime("%Y-%m-%d %H:%M"))
-                    # print(str(time.strftime("%Y-%m-%d %H:%M")))
-                res['questionnaireList'] = questionnaireList
-                res['status'] = 200
-                res['result'] = "获取成功"
-                return JsonResponse(res)
-            else:
-                return JsonResponse({'status': 300, 'result': "用户没有创建问卷记录"})
-            # except Exception:
-            #     return JsonResponse({'status': 301, 'result': "获取信息出错"})
+            try:
+                if method == 1:
+                    questionnaires = QuestionnaireInformation.objects.filter(authorId=authorId).order_by('setUpTime')
+                elif method == -1:
+                    questionnaires = QuestionnaireInformation.objects.filter(authorId=authorId).order_by('-setUpTime')
+                elif method == 2:
+                    questionnaires = QuestionnaireInformation.objects.filter(authorId=authorId).order_by('startTime')
+                elif method == -2:
+                    questionnaires = QuestionnaireInformation.objects.filter(authorId=authorId).order_by('-startTime')
+                elif method == 3:
+                    questionnaires = QuestionnaireInformation.objects.filter(authorId=authorId).order_by('recoveryAmount')
+                elif method == -3:
+                    questionnaires = QuestionnaireInformation.objects.filter(authorId=authorId).order_by('-recoveryAmount')
+                else:
+                    return JsonResponse({'status': 400, 'result': "排序方法出错"})
+                if questionnaires.exists():
+                    questionnaireList = []
+                    for questionnaire in questionnaires:
+                        questionnaireList.append(
+                            {
+                                'questionnaireType': questionnaire.questionnaireType,
+                                'questionnaireId': questionnaire.id,
+                                'questionnaireTitle': questionnaire.questionnaireTitle,
+                                'currentState': questionnaire.currentState,
+                                'deleted': questionnaire.deleted,
+                                'answerAmount': questionnaire.recoveryAmount,
+                                'setUpTime': str(questionnaire.setUpTime.strftime("%Y-%m-%d %H:%M")),
+                                'startTime': questionnaire.startTime,
+                                'latestAlterTime': questionnaire.latestAlterTime,
+                                'lastEndTime': questionnaire.lastEndTime,
+                            }
+                        )
+                        time = questionnaire.setUpTime
+                        # print(time)
+                        # print(time.strftime("%Y-%m-%d %H:%M"))
+                        # print(str(time.strftime("%Y-%m-%d %H:%M")))
+                    res['questionnaireList'] = questionnaireList
+                    res['status'] = 200
+                    res['result'] = "获取成功"
+                    return JsonResponse(res)
+                else:
+                    return JsonResponse({'status': 300, 'result': "用户没有创建问卷记录"})
+            except Exception:
+                return JsonResponse({'status': 301, 'result': "获取信息出错"})
         else:
             return JsonResponse({'status': 400, 'result': "用户未登录"})
     else:
