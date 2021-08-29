@@ -446,8 +446,10 @@ def backQuestionnaire(request):
 
 # 按问卷回收量排序
 def sortByRecoveryAmount(request):
-    if request.method == "GET":
-        Questionnaires = QuestionnaireInformation.objects.all().order_by('-recoveryAmount')
+    if request.method == "POST":
+        params = json.loads(request.body.decode())
+        authorId = params.get("authorId")
+        Questionnaires = QuestionnaireInformation.objects.filter(authorId=authorId).order_by('-recoveryAmount')
         myData = []
         # Questionnaires = QuestionnaireInformation.objects.all().order_by('-recoveryAmount')
         for questionnaire in Questionnaires:
@@ -463,7 +465,8 @@ def sortByRecoveryAmount(request):
                            "maxRecovery":questionnaire.maxRecovery,
                            "currentState":questionnaire.currentState,
                            "questionAmount":questionnaire.questionAmount,
-                           "answerAmount":questionnaire.recoveryAmount})
+                           "answerAmount":questionnaire.recoveryAmount,
+                           "deleted":questionnaire.deleted})
 
         return JsonResponse({
             "status":200,
@@ -1307,6 +1310,9 @@ def getAnswerQuestionnaireInterface(request):
                     isStarted = False
             else:
                 isStarted = False
+            if questionnaire.endTime is not None and questionnaire.startTime is not None:
+                if questionnaire.endTime.timestamp()>=questionnaire.startTime.timestamp():
+                    isStarted = False
             res = {
                 'questionnaireTitle': questionnaire.questionnaireTitle,
                 'questionnaireInformation': questionnaire.questionnaireInformation,
