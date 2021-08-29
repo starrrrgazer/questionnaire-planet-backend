@@ -1425,7 +1425,7 @@ def getAnswerQuestionnaireInterface(request):
                 'questionnaireTitle': questionnaire.questionnaireTitle,
                 'questionnaireInformation': questionnaire.questionnaireInformation,
                 'questionAmount': questionnaire.questionAmount,
-                'lastEndTime': questionnaire.lastEndTime,
+                'lastEndTime': str(questionnaire.lastEndTime.strftime("%Y-%m-%d %H:%M:%S")),
                 'insertQuestionNumber': questionnaire.insertQuestionNumber,
                 'outOfOrder': questionnaire.outOfOrder,
                 'questionnaireType': questionnaire.questionnaireType,
