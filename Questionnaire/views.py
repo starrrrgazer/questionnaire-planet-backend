@@ -222,8 +222,10 @@ def getAnswer(request):
                     AnswerQuestion = AnswerQuestions.objects.get(answerQuestionId=question.id,answerQuestionnaireId=answerQuestionnaire.id)
                     AnswerOption = AnswerOptions.objects.get(answerQuestionId=AnswerQuestion.id)
                     # params[count]['answer'+str(i)] =AnswerOption.optionContent
-                    params[count]['answer' + str(i)] = chr(ord(k)+int(AnswerOption.optionContent)-1) +":"+ \
-                    Options.objects.get(questionId=question.id,optionOrder=AnswerOption.optionContent).optionContent
+                    if AnswerOption.optionContent != -1:
+                        params[count]['answer' + str(i)] = chr(ord(k)+int(AnswerOption.optionContent)-1) +":"+ \
+                        Options.objects.get(questionId=question.id,optionOrder=AnswerOption.optionContent).optionContent
+                    else:params[count]['answer' + str(i)] = "未回答"
                     i+=1
                 if question.questionTypeId == 5:
                     AnswerQuestion = AnswerQuestions.objects.get(answerQuestionId=question.id,
@@ -231,13 +233,17 @@ def getAnswer(request):
                     AnswerOptions1 = AnswerOptions.objects.filter(answerQuestionId=AnswerQuestion.id)
                     AnswerOption = AnswerOptions1[0]
                     params[count]['answer' + str(i)] = ''
-                    for j in range(0,len(AnswerOption.optionContent)):
-                        params[count]['answer' + str(i)] += chr(ord(k) + int(AnswerOption.optionContent[j]) - 1)+":"+ \
-                                                            Options.objects.get(questionId=question.id,
-                                                                                optionOrder=AnswerOption.optionContent[j]).optionContent
-                        if j != len(AnswerOption.optionContent)-1:
-                            params[count]['answer' + str(i)] += ","
-                    i += 1
+                    if AnswerOption.optionContent == -1:
+                        params[count]['answer' + str(i)] += "未回答"
+                        i+=1
+                    else:
+                        for j in range(0,len(AnswerOption.optionContent)):
+                            params[count]['answer' + str(i)] += chr(ord(k) + int(AnswerOption.optionContent[j]) - 1)+":"+ \
+                                                                Options.objects.get(questionId=question.id,
+                                                                                    optionOrder=AnswerOption.optionContent[j]).optionContent
+                            if j != len(AnswerOption.optionContent)-1:
+                                params[count]['answer' + str(i)] += ","
+                        i += 1
                 if question.questionTypeId == 2:
                     AnswerQuestion = AnswerQuestions.objects.get(answerQuestionId=question.id,
                                                                  answerQuestionnaireId=answerQuestionnaire.id)
@@ -246,14 +252,21 @@ def getAnswer(request):
                     AnswerQuestion = AnswerQuestions.objects.get(answerQuestionId=question.id,
                                                                  answerQuestionnaireId=answerQuestionnaire.id)
                     AnswerOption = AnswerOptions.objects.get(answerQuestionId=AnswerQuestion.id)
-                    params[count]['answer' + str(i)] = AnswerOption.optionScore
+                    if AnswerOption.optionContent != -1:
+                        params[count]['answer' + str(i)] = AnswerOption.optionScore
+                    else:
+                        params[count]['answer' + str(i)] = "未回答"
                     i += 1
                 if question.questionTypeId == 4 :
                     AnswerQuestion = AnswerQuestions.objects.get(answerQuestionId=question.id,
                                                                  answerQuestionnaireId=answerQuestionnaire.id)
                     AnswerOption = AnswerOptions.objects.get(answerQuestionId=AnswerQuestion.id)
-                    params[count]['answer' + str(i)] = AnswerOption.optionScore
-                    params[count]['comment' + str(i)] = AnswerOption.optionScoreText
+                    if AnswerOption.optionContent != -1:
+                        params[count]['answer' + str(i)] = AnswerOption.optionScore
+                        params[count]['comment' + str(i)] = AnswerOption.optionScoreText
+                    else:
+                        params[count]['answer' + str(i)] = "未回答"
+                        params[count]['comment' + str(i)] = "未回答"
                     i += 1
 
             count += 1
@@ -321,15 +334,22 @@ def getEveryOneAnswer(request):
                 question = Questions.objects.get(id = answerQuestion.answerQuestionId)
                 answerOptions = AnswerOptions.objects.filter(answerQuestionId=answerQuestion.id)
                 if answerQuestion.questionTypeId == 1 :
+                    if answerOptions[0].optionContent != -1:
+                        option = Options.objects.get(id = answerOptions[0].answerOptionId)
 
-                    option = Options.objects.get(id = answerOptions[0].answerOptionId)
-
-                    questionAnswer.append({
-                        "question": question.questionTitle,
-                        "answer":answerOptions[0].optionContent,
-                        "option":option.optionContent,
-                        "questionType":QuestionType.objects.get(id = question.questionTypeId).questionTypeName
-                    });
+                        questionAnswer.append({
+                            "question": question.questionTitle,
+                            "answer":answerOptions[0].optionContent,
+                            "option":option.optionContent,
+                            "questionType":QuestionType.objects.get(id = question.questionTypeId).questionTypeName
+                        });
+                    else:
+                        questionAnswer.append({
+                            "question": question.questionTitle,
+                            "answer": answerOptions[0].optionContent,
+                            "option": "未回答",
+                            "questionType": QuestionType.objects.get(id=question.questionTypeId).questionTypeName
+                        });
                     for index in range(0,question.choiceAmount):
                         if index == 0:
                             option = Options.objects.get(questionId=question.id,optionOrder=index+1)
@@ -341,21 +361,29 @@ def getEveryOneAnswer(request):
                             });
                 elif answerQuestion.questionTypeId == 5:
                     index = 0
-                    for answerOption in answerOptions:
-                        option = Options.objects.get(id=answerOption.answerOptionId)
-                        options = []
-                        options.append(option.optionContent)
-                        if index == 0:
-                            questionAnswer.append({
-                                "question": question.questionTitle,
-                                "answer": answerOption.optionContent,
-                                "option": options,
-                                "questionType": QuestionType.objects.get(id=question.questionTypeId).questionTypeName,
+                    if answerOptions[0].optionContent == -1:
+                        questionAnswer.append({
+                            "question": question.questionTitle,
+                            "answer": answerOptions[0].optionContent,
+                            "option": "未回答",
+                            "questionType": QuestionType.objects.get(id=question.questionTypeId).questionTypeName,
+                        })
+                    else:
+                        for answerOption in answerOptions:
+                            option = Options.objects.get(id=answerOption.answerOptionId)
+                            options = []
+                            options.append(option.optionContent)
+                            if index == 0:
+                                questionAnswer.append({
+                                    "question": question.questionTitle,
+                                    "answer": answerOption.optionContent,
+                                    "option": options,
+                                    "questionType": QuestionType.objects.get(id=question.questionTypeId).questionTypeName,
 
-                            })
-                            index += 1
-                        else:
-                            questionAnswer[len(questionAnswer)-1]['option'].append(option.optionContent)
+                                })
+                                index += 1
+                            else:
+                                questionAnswer[len(questionAnswer)-1]['option'].append(option.optionContent)
                     for index in range(0,question.choiceAmount):
                         if index == 0:
                             option = Options.objects.get(questionId=question.id,optionOrder=index+1)
@@ -593,15 +621,33 @@ def submitQuestionnaire(request):
                     newAnswerQuestion.answerQuestionId = Questions.objects.get(questionnaireId=answerQuestionnaire.questionnaireId,
                                                                                questionOrder=index+1).id
                     newAnswerQuestion.questionTypeId = Questions.objects.get(id = newAnswerQuestion.answerQuestionId).questionTypeId
+
                     newAnswerQuestion.answerOrder = index + 1
 
                     if newAnswerQuestion.questionTypeId == 2:
                         newAnswerQuestion.answerText = newAnswerQuestions[index]['answer']
+                        # 非必选
+                        if not Questions.objects.get(id=newAnswerQuestion.answerQuestionId).required:
+                            if newAnswerQuestions[index]['answer'] == '':
+                                newAnswerQuestion.answerText = "本题未填写"
                     newAnswerQuestion.save()
 
                     if newAnswerQuestion.questionTypeId == 1 or newAnswerQuestion.questionTypeId == 6 :
                         newAnswerOption = AnswerOptions()
                         newAnswerOption.optionType = 1;
+                        # 非必选
+                        if not Questions.objects.get(id=newAnswerQuestion.answerQuestionId).required:
+                            if newAnswerQuestions[index]['answer'] == '':
+                                newAnswerOption.optionContent = -1
+                                newAnswerOption.answerOptionOrder = -1
+                                newAnswerOption.answerQuestionId = newAnswerQuestion.id
+                                newAnswerOption.answerOptionId = -1
+                                if Questionnaire.questionnaireType == 2:
+                                    newAnswerQuestion.thisScore = 0
+                                    newAnswerQuestion.save()
+                                newAnswerOption.save()
+                                continue
+
                         newAnswerOption.optionContent = newAnswerQuestions[index]['answer']
                         newAnswerOption.answerOptionOrder = newAnswerQuestions[index]['answer']
                         newAnswerOption.answerQuestionId = newAnswerQuestion.id
@@ -637,6 +683,19 @@ def submitQuestionnaire(request):
 
                         newAnswerOption.save()
                     elif newAnswerQuestion.questionTypeId == 5 :
+                        # 非必选
+                        if not Questions.objects.get(id=newAnswerQuestion.answerQuestionId).required:
+                            if newAnswerQuestions[index]['answer'] == '':
+                                newAnswerOption.optionType = 1;
+                                newAnswerOption.optionContent = -1
+                                newAnswerOption.answerOptionOrder = -1
+                                newAnswerOption.answerQuestionId = newAnswerQuestion.id
+                                newAnswerOption.answerOptionId = -1
+                                if Questionnaire.questionnaireType == 2:
+                                    newAnswerQuestion.thisScore = 0
+                                    newAnswerQuestion.save()
+                                newAnswerOption.save()
+                                continue
                         answer = newAnswerQuestions[index]['answer']
                         answerAmount = len(answer)
                         for i in range(0,answerAmount):
@@ -683,9 +742,11 @@ def submitQuestionnaire(request):
                         newAnswerOption.optionContent = 1
                         newAnswerOption.answerOptionOrder = 1
                         newAnswerOption.completionContent = newAnswerQuestions[index]['answer']
+                        # 非必选
+                        if not Questions.objects.get(id=newAnswerQuestion.answerQuestionId).required:
+                            if newAnswerQuestions[index]['answer'] == '':
+                                newAnswerOption.completionContent = "本题未填写"
                         newAnswerOption.answerQuestionId = newAnswerQuestion.id
-                        # newAnswerOption.answerOptionId = Options.objects.get(questionId=newAnswerQuestion.answerQuestionId,
-                        #                                                      ).id
                         newAnswerOption.answerOptionId = -1
                         newAnswerOption.save()
                     elif newAnswerQuestion.questionTypeId == 3:
@@ -694,6 +755,16 @@ def submitQuestionnaire(request):
                         newAnswerOption.optionContent = 1
                         newAnswerOption.answerOptionOrder = 1
                         newAnswerOption.optionScore = newAnswerQuestions[index]['answer']
+                        # 非必选
+                        if not Questions.objects.get(id=newAnswerQuestion.answerQuestionId).required:
+                            if newAnswerQuestions[index]['answer'] == '':
+                                newAnswerOption.optionContent = -1
+                                newAnswerOption.answerOptionOrder = -1
+                                newAnswerOption.answerQuestionId = newAnswerQuestion.id
+                                newAnswerOption.answerOptionId = -1
+                                newAnswerOption.optionScore = -1
+                                newAnswerOption.save()
+                                continue
                         newAnswerOption.answerQuestionId = newAnswerQuestion.id
                         # newAnswerOption.answerOptionId = Options.objects.get(questionId=newAnswerQuestion.answerQuestionId,
                         #                                                      ).id
@@ -706,6 +777,17 @@ def submitQuestionnaire(request):
                         newAnswerOption.answerOptionOrder = 1
                         newAnswerOption.optionScore = newAnswerQuestions[index]['answer']
                         newAnswerOption.optionScoreText = newAnswerQuestions[index]['comment']
+                        # 非必选
+                        if not Questions.objects.get(id=newAnswerQuestion.answerQuestionId).required:
+                            if newAnswerQuestions[index]['answer'] == '':
+                                newAnswerOption.optionContent = -1
+                                newAnswerOption.answerOptionOrder = -1
+                                newAnswerOption.answerQuestionId = newAnswerQuestion.id
+                                newAnswerOption.answerOptionId = -1
+                                newAnswerOption.optionScoreText = "未填写"
+                                newAnswerOption.optionScore = -1
+                                newAnswerOption.save()
+                                continue
                         newAnswerOption.answerQuestionId = newAnswerQuestion.id
                         # newAnswerOption.answerOptionId = Options.objects.get(questionId=newAnswerQuestion.answerQuestionId,
                         #                                                      ).id
@@ -1112,7 +1194,8 @@ def editQuestionnaire(request):
                             op.save()
                             j = j+1
                 return JsonResponse({'status': 200, 'result': "保存成功"})
-            except Exception:
+            except Exception as e:
+                print(e)
                 return JsonResponse({'status': 400, 'result': "保存问卷失败"})
         else:
             return JsonResponse({'status': 401, 'result': "用户未登录"})
